@@ -1,0 +1,71 @@
+name: Ecom-Shop CI/CD
+
+on:
+  push:
+    branches:
+      - main # Adjust if your default branch has a different name
+      - development # Add other branches as needed
+  pull_request:
+    branches:
+      - main
+      - development
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.20.4] # Use your project’s Node.js version
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: |
+          cd isolora
+          yarn install
+
+      - name: Run build
+        run: |
+          cd isolora
+          yarn build
+
+      - name: Run tests
+        run: |
+          cd isolora
+          yarn test
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Only deploy on pushes to main
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: |
+          cd isolora
+          yarn install
+
+      - name: Build for deployment
+        run: |
+          cd isolora
+          yarn build
+
+      # Add your deployment step here, for example:
+      # - name: Deploy to production
+      #   run: |
+      #     cd isolora
+      #     your_deployment_command_here
