@@ -3,6 +3,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation"; // Import useRouter
+import { useUser } from "@/app/context/usercontext";
 
 // Define the Item and BlobResult interfaces
 interface Item {
@@ -12,6 +13,7 @@ interface Item {
   price: number;
   quantity: number;
   imageUrl: string;
+  user_id:number
 }
 
 interface BlobResult {
@@ -27,9 +29,16 @@ export default function ItemForm() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
+  const { user } = useUser();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (!user) {
+      alert("User is not logged in.");
+      return;
+    }
+  
 
     if (!inputFileRef.current?.files) {
       throw new Error("No file selected");
@@ -56,6 +65,7 @@ export default function ItemForm() {
       price: parseFloat(price),
       quantity: parseInt(quantity),
       imageUrl: blob.url,
+      user_id: user.id,
     };
 
     await fetch("/api/product/add-items", {

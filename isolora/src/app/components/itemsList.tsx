@@ -11,6 +11,7 @@ interface Item {
   price: number;
   quantity: number;
   image_url: string | null;
+  user_id:number;
 }
 
 export default function ItemList() {
@@ -28,7 +29,13 @@ export default function ItemList() {
   }, []);
 
   // Function to delete an item
-  const deleteItem = async (itemid: number, imageUrl: string) => {
+  const deleteItem = async (itemid: number, user_id: number, imageUrl: string) => {
+
+    if (user?.id !== user_id) {
+      alert("You do not have permission to delete this item.");
+      return;
+    }
+
     const res = await fetch("/api/product/delete", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -71,7 +78,7 @@ export default function ItemList() {
               onClick={() => {
                 // Only call deleteItem if image_url is not null
                 if (item.image_url) {
-                  deleteItem(item.itemid, item.image_url);
+                  deleteItem(item.itemid, item.user_id, item.image_url);
                 } else {
                   alert("Image URL is missing. Cannot delete item image.");
                 }
@@ -86,3 +93,5 @@ export default function ItemList() {
     </div>
   );
 }
+
+

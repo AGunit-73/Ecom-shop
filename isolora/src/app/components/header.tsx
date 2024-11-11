@@ -26,6 +26,7 @@ const Header = () => {
         {user ? (
           <div className="text-right">
             <p className="font-semibold">{user.name}</p>
+            <p className="font-semibold">{user.id}</p>
             {user.role === "vendor" && (
               <Link href="/pages/add-items">
                 <button className="mt-1 px-3 py-1 text-sm font-medium bg-green-500 rounded hover:bg-green-600">

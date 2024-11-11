@@ -1,3 +1,4 @@
+import React from 'react';
 import Header from "./components/header";
 import ItemList from "./components/itemsList";
 export default function Home() {
