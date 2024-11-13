@@ -81,6 +81,8 @@ jobs:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}      # Secret for encryption key, used for data security
       ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}        # Secret for encryption IV, used for data security
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}          # Secret for Vercel authentication token
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}  # Secret for Vercel project ID to specify target project
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}        # Secret for Vercel organization ID to specify target org
 
     # Steps to be executed within the deploy job
     steps:
@@ -94,20 +96,24 @@ jobs:
         with:
           node-version: "${{ matrix.node-version }}"  # Use the Node.js version from the matrix
 
-      # Step 3: Install dependencies
+      # Step 3: Install latest Vercel CLI (optional step to ensure CLI version consistency)
+      - name: Install latest Vercel CLI
+        run: yarn global add vercel@latest
+
+      # Step 4: Install dependencies
       - name: Install dependencies
         run: |
           cd isolora            # Navigate to the project directory
           yarn install          # Install all project dependencies using Yarn
 
-      # Step 4: Build for deployment
+      # Step 5: Build for deployment
       - name: Build for deployment
         run: |
           cd isolora            # Ensure we are in the project directory
           yarn build            # Run the build command to prepare code for deployment
 
-      # Step 5: Deploy to Vercel
+      # Step 6: Deploy to Vercel
       - name: Deploy to Vercel
         run: |
           cd isolora
-          vercel --prod --token $VERCEL_TOKEN  # Deploy to Vercel in production mode using only the token
+          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID  # Deploy to Vercel in production mode with project and org IDs
