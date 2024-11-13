@@ -33,7 +33,7 @@ describe('Home Page', () => {
     render(<Home />);
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();
-    expect(heading).toHaveTextContent('Isolora, we are up to somthing big');
+    expect(heading).toHaveTextContent('Welcome to Isolora');
   });
 
   it('renders the ItemList component', () => {
