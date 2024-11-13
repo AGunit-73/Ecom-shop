@@ -81,6 +81,8 @@ jobs:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}      # Secret for encryption key, used for data security
       ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}        # Secret for encryption IV, used for data security
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}          # Secret for Vercel authentication token
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}  # Secret for Vercel project ID to specify target project
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}        # Secret for Vercel organization ID to specify target org
 
     # Steps to be executed within the deploy job
     steps:
@@ -110,4 +112,4 @@ jobs:
       - name: Deploy to Vercel
         run: |
           cd isolora
-          vercel --prod --token $VERCEL_TOKEN  # Deploy to Vercel in production mode using only the token for single-project accounts
+          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID  # Deploy to Vercel in production mode with project and org IDs
