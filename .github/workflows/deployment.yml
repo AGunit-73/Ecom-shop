@@ -1,4 +1,6 @@
 # GitHub Actions Workflow for Ecom-Shop CI/CD Pipeline
+# This workflow automates the process of testing and deploying the Ecom-Shop application.
+# It defines two main jobs: 'build-and-test' and 'deploy'.
 
 name: Ecom-Shop CI/CD
 
@@ -79,8 +81,6 @@ jobs:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}      # Secret for encryption key, used for data security
       ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}        # Secret for encryption IV, used for data security
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}          # Secret for Vercel authentication token
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}  # Secret for Vercel project ID to specify target project
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}        # Secret for Vercel organization ID to specify target org
 
     # Steps to be executed within the deploy job
     steps:
@@ -110,4 +110,4 @@ jobs:
       - name: Deploy to Vercel
         run: |
           cd isolora
-          VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID VERCEL_ORG_ID=$VERCEL_ORG_ID vercel --prod --token $VERCEL_TOKEN  # Deploy to Vercel in production mode using environment variables
+          vercel --prod --token $VERCEL_TOKEN  # Deploy to Vercel in production mode using only the token for single-project accounts
