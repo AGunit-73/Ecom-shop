@@ -1,57 +1,61 @@
-
-"use client";
-
+"use client" 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/usercontext";
+import { FaSpinner, FaLock, FaEnvelope, FaUserPlus } from "react-icons/fa";
 
 export default function AuthForm() {
   const router = useRouter();
-  const { setUser } = useUser(); // Access setUser from UserContext
-  const [isLogin, setIsLogin] = useState(true); // Toggle between login and signup
+  const { setUser } = useUser();
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [signupName, setSignupName] = useState("");
-  const [userRole, setUserRole] = useState("customer"); 
+  const [userRole, setUserRole] = useState("customer");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const validateForm = () => {
+    if (!email || !password) return "Email and password are required";
+    if (!isLogin && !signupName) return "Name is required for signup";
+    return "";
+  };
 
   const handleLogin = async () => {
-    console.log("Attempting login with:", { email, password });
-
+    const errorMessage = validateForm();
+    if (errorMessage) {
+      setError(errorMessage);
+      return;
+    }
+    setLoading(true);
     try {
       const res = await fetch("/api/user/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
-      console.log("Login response:", data);
-
       if (data.success) {
-        alert("Login successful.");
-        
-        // Store the active user data in both localStorage and UserContext
         localStorage.setItem("activeUser", JSON.stringify(data.user));
-        setUser(data.user); // Update the context with the logged-in user
-        
-        router.push("/"); // Redirect after login
+        setUser(data.user);
+        router.push("/");
       } else {
-        alert(data.message || "Login failed");
+        setError(data.message || "Login failed");
       }
-    } catch (error) {
-      console.error("Error during login:", error);
-      alert("An error occurred during login.");
+    } catch {
+      setError("An error occurred during login.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSignup = async () => {
-    console.log("Attempting signup with:", {
-      name: signupName,
-      email,
-      password,
-      role: userRole,
-    });
-
+    const errorMessage = validateForm();
+    if (errorMessage) {
+      setError(errorMessage);
+      return;
+    }
+    setLoading(true);
     try {
       const res = await fetch("/api/user/add-user", {
         method: "POST",
@@ -63,79 +67,107 @@ export default function AuthForm() {
           role: userRole,
         }),
       });
-
+      
       const data = await res.json();
-      console.log("Signup response:", data);
-
       if (data.success) {
-        alert("Signup successful. Please log in.");
-        setIsLogin(true); // Switch to login mode after signup
-        router.push("/pages/signup"); // Redirect to login page
+        setIsLogin(true);
+        router.push("/pages/signup");
       } else {
-        alert(data.message || "Signup failed");
+        setError(data.message || "Signup failed");
       }
-    } catch (error) {
-      console.error("Error during signup:", error);
-      alert("An error occurred during signup.");
+    } catch {
+      setError("An error occurred during signup.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white p-8 rounded shadow-md w-full max-w-md mx-auto">
-      <h2 className="text-2xl font-bold mb-4 text-black">
-        {isLogin ? "Log In" : "Sign Up"}
-      </h2>
-      <form autoComplete="off">
-        {!isLogin && (
-          <>
-            <select
-              value={userRole}
-              onChange={(e) => setUserRole(e.target.value)}
-              className="mb-4 p-2 border rounded w-full text-black"
-            >
-              <option value="customer">Customer</option>
-              <option value="vendor">Vendor</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Name"
-              value={signupName}
-              onChange={(e) => setSignupName(e.target.value)}
-              className="mb-4 p-2 border rounded w-full text-black"
-            />
-          </>
-        )}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mb-4 p-2 border rounded w-full text-black"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mb-4 p-2 border rounded w-full text-black"
-        />
-        <button
-          type="button"
-          onClick={isLogin ? handleLogin : handleSignup}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition w-full"
-        >
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded shadow-lg w-full max-w-md mx-auto">
+        <h2 className="text-3xl font-bold mb-6 text-blue-600 text-center">
           {isLogin ? "Log In" : "Sign Up"}
-        </button>
-      </form>
-      <p className="mt-4 text-center text-sm text-gray-600">
-        {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-        <span
-          onClick={() => setIsLogin(!isLogin)}
-          className="text-blue-600 cursor-pointer hover:underline"
+        </h2>
+        {error && (
+          <p className="text-red-500 text-center mb-4" aria-live="polite">{error}</p>
+        )}
+        <form 
+          onSubmit={(e) => e.preventDefault()}
+          autoComplete="off" 
+          className="space-y-4"
         >
-          {isLogin ? "Sign up" : "Log in"}
-        </span>
-      </p>
+          {!isLogin && (
+            <>
+              <div className="relative">
+                <FaUserPlus className="absolute left-3 top-3 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={signupName}
+                  onChange={(e) => setSignupName(e.target.value)}
+                  className="pl-10 p-2 border rounded w-full focus:border-blue-500 text-black"
+                />
+              </div>
+              <div className="relative">
+                <select
+                  value={userRole}
+                  onChange={(e) => setUserRole(e.target.value)}
+                  className="p-2 pl-10 border rounded w-full focus:border-blue-500 text-black"
+                >
+                  <option value="customer">Customer</option>
+                  <option value="vendor">Vendor</option>
+                </select>
+              </div>
+            </>
+          )}
+          <div className="relative">
+            <FaEnvelope className="absolute left-3 top-3 text-gray-400" />
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="pl-10 p-2 border rounded w-full focus:border-blue-500 text-black"
+            />
+          </div>
+          <div className="relative">
+            <FaLock className="absolute left-3 top-3 text-gray-400" />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-10 p-2 border rounded w-full focus:border-blue-500 text-black"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={isLogin ? handleLogin : handleSignup}
+            className="flex justify-center items-center bg-blue-600 text-white px-4 py-2 rounded w-full transition hover:bg-blue-700"
+            disabled={loading}
+          >
+            {loading ? (
+              <FaSpinner className="animate-spin mr-2" />
+            ) : isLogin ? (
+              "Log In"
+            ) : (
+              "Sign Up"
+            )}
+          </button>
+        </form>
+        <p className="mt-4 text-center text-sm text-gray-600">
+          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+          <span
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setError("");
+            }}
+            className="text-blue-600 cursor-pointer hover:underline"
+          >
+            {isLogin ? "Sign up" : "Log in"}
+          </span>
+        </p>
+      </div>
     </div>
   );
 }
