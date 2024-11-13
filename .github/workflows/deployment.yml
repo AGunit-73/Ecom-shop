@@ -1,80 +1,111 @@
+# GitHub Actions Workflow for Ecom-Shop CI/CD Pipeline
+
 name: Ecom-Shop CI/CD
 
+# Triggers for the workflow
 on:
   push:
     branches:
-      - main
-      - development
-      - "*" # Runs on any branch push
+      - main           # Trigger workflow on pushes to the main branch
+      - development    # Trigger workflow on pushes to the development branch
   pull_request:
     branches:
-      - main
-      - development
+      - main           # Trigger workflow on pull requests to the main branch
+      - development    # Trigger workflow on pull requests to the development branch
 
+# Define jobs to be executed in the workflow
 jobs:
+  # Build and Test Job
   build-and-test:
+    # Specify the operating system for the runner
     runs-on: ubuntu-latest
+
+    # Define a matrix to run the job with a specified Node.js version
     strategy:
       matrix:
-        node-version: [18.20.4]
+        node-version: [18.20.4]  # Specify the Node.js version to be used in the job
 
+    # Environment variables available to all steps in this job
     env:
-      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}  # Secret for encryption key
+      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}    # Secret for encryption IV
 
+    # Steps to be executed within the job
     steps:
+      # Step 1: Checkout code from the repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # GitHub Action to checkout repository code
 
+      # Step 2: Set up the specified Node.js version
       - name: Set up Node.js "${{ matrix.node-version }}"
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v3  # GitHub Action to set up Node.js environment
         with:
-          node-version: "${{ matrix.node-version }}"
+          node-version: "${{ matrix.node-version }}"  # Use the Node.js version from the matrix
 
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
-          cd isolora
-          yarn install
+          cd isolora            # Navigate to the project directory
+          yarn install          # Install all project dependencies using Yarn
 
+      # Step 4: Build the project
       - name: Run build
         run: |
-          cd isolora
-          yarn build
+          cd isolora            # Ensure we are in the project directory
+          yarn build            # Run the build command to compile the project
 
+      # Step 5: Run tests
       - name: Run tests
         run: |
-          cd isolora
-          yarn test
+          cd isolora            # Ensure we are in the project directory
+          yarn test             # Run tests to verify code functionality
 
+  # Deployment Job
   deploy:
+    # This job depends on the completion of the build-and-test job
     needs: build-and-test
+    # Specify the operating system for the runner
     runs-on: ubuntu-latest
+    # This job runs only when the push is made to the main branch
     if: github.ref == 'refs/heads/main'
+
+    # Define a matrix to run the job with a specified Node.js version
     strategy:
       matrix:
-        node-version: [18.20.4]
+        node-version: [18.20.4]  # Specify the Node.js version to be used in the job
 
+    # Environment variables available to all steps in this job
     env:
-      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}  # Secret for encryption key
+      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}    # Secret for encryption IV
 
+    # Steps to be executed within the deploy job
     steps:
+      # Step 1: Checkout code from the repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # GitHub Action to checkout repository code
 
+      # Step 2: Set up the specified Node.js version
       - name: Set up Node.js "${{ matrix.node-version }}"
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v3  # GitHub Action to set up Node.js environment
         with:
-          node-version: "${{ matrix.node-version }}"
+          node-version: "${{ matrix.node-version }}"  # Use the Node.js version from the matrix
 
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
-          cd isolora
-          yarn install
+          cd isolora            # Navigate to the project directory
+          yarn install          # Install all project dependencies using Yarn
 
+      # Step 4: Build for deployment
       - name: Build for deployment
         run: |
-          cd isolora
-          yarn build
+          cd isolora            # Ensure we are in the project directory
+          yarn build            # Run the build command to prepare code for deployment
 
-      # Add your deployment step here if required
+      # Step 5: Deployment step (placeholder for actual deployment command)
+      # Uncomment and replace with the actual deployment command if required
+      # - name: Deploy to production
+      #   run: |
+      #     cd isolora
+      #     your_deployment_command_here
