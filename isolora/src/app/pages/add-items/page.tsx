@@ -1,19 +1,18 @@
-// src/app/components/ItemForm.tsx
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
-import { useUser } from "@/app/context/usercontext";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/app/context/usercontext"; // Import the user context
 
 // Define the Item and BlobResult interfaces
 interface Item {
   name: string;
-  category:string;
+  category: string;
   description: string;
   price: number;
   quantity: number;
   imageUrl: string;
-  user_id:number
+  user_id: number;
 }
 
 interface BlobResult {
@@ -21,7 +20,7 @@ interface BlobResult {
 }
 
 export default function ItemForm() {
-  const router = useRouter(); // Initialize the router
+  const router = useRouter();
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -29,7 +28,7 @@ export default function ItemForm() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
-  const { user } = useUser();
+  const { user } = useUser(); // Get user data from the context
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -38,7 +37,6 @@ export default function ItemForm() {
       alert("User is not logged in.");
       return;
     }
-  
 
     if (!inputFileRef.current?.files) {
       throw new Error("No file selected");
@@ -65,7 +63,7 @@ export default function ItemForm() {
       price: parseFloat(price),
       quantity: parseInt(quantity),
       imageUrl: blob.url,
-      user_id: user.id,
+      user_id: user.id, // Include the user_id from context
     };
 
     await fetch("/api/product/add-items", {
@@ -94,14 +92,18 @@ export default function ItemForm() {
         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
       />
 
-      <input
-        type="text"
-        placeholder="Category"
+      {/* Category dropdown */}
+      <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
         required
         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
-      />
+      >
+        <option value="" disabled>Select Category</option>
+        <option value="Indian Wear">Indian Wear</option>
+        <option value="Western Wear">Western Wear</option>
+        <option value="Footwear">Footwear</option>
+      </select>
 
       <textarea
         placeholder="Description"
