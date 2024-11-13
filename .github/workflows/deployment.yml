@@ -1,6 +1,5 @@
 # GitHub Actions Workflow for Ecom-Shop CI/CD Pipeline
 # This workflow automates the process of testing and deploying the Ecom-Shop application.
-# It defines two main jobs: 'build-and-test' and 'deploy'.
 
 name: Ecom-Shop CI/CD
 
@@ -19,97 +18,79 @@ on:
 jobs:
   # Build and Test Job
   build-and-test:
-    # Specify the operating system for the runner
     runs-on: ubuntu-latest
-
-    # Define a matrix to run the job with a specified Node.js version
     strategy:
       matrix:
-        node-version: [18.20.4]  # Specify the Node.js version to be used in the job
+        node-version: [18.20.4]
 
-    # Environment variables available to all steps in this job
     env:
-      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}  # Secret for encryption key, used for data security
-      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}    # Secret for encryption IV, used for data security
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
 
-    # Steps to be executed within the job
     steps:
-      # Step 1: Checkout code from the repository
       - name: Checkout code
-        uses: actions/checkout@v3  # GitHub Action to checkout repository code
+        uses: actions/checkout@v3
 
-      # Step 2: Set up the specified Node.js version
       - name: Set up Node.js "${{ matrix.node-version }}"
-        uses: actions/setup-node@v3  # GitHub Action to set up Node.js environment
+        uses: actions/setup-node@v3
         with:
-          node-version: "${{ matrix.node-version }}"  # Use the Node.js version from the matrix
+          node-version: "${{ matrix.node-version }}"
 
-      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
-          cd isolora            # Navigate to the project directory
-          yarn install          # Install all project dependencies using Yarn
+          cd isolora
+          yarn install
 
-      # Step 4: Build the project
       - name: Run build
         run: |
-          cd isolora            # Ensure we are in the project directory
-          yarn build            # Run the build command to compile the project
+          cd isolora
+          yarn build
 
-      # Step 5: Run tests
       - name: Run tests
         run: |
-          cd isolora            # Ensure we are in the project directory
-          yarn test             # Run tests to verify code functionality
+          cd isolora
+          yarn test
 
   # Deployment Job
   deploy:
-    # This job depends on the completion of the build-and-test job
     needs: build-and-test
-    # Specify the operating system for the runner
     runs-on: ubuntu-latest
-    # This job runs only when the push is made to the main branch
     if: github.ref == 'refs/heads/main'
-
-    # Define a matrix to run the job with a specified Node.js version
     strategy:
       matrix:
-        node-version: [18.20.4]  # Specify the Node.js version to be used in the job
+        node-version: [18.20.4]
 
-    # Environment variables available to all steps in this job
     env:
-      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}      # Secret for encryption key, used for data security
-      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}        # Secret for encryption IV, used for data security
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}          # Secret for Vercel authentication token
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}  # Secret for Vercel project ID to specify target project
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}        # Secret for Vercel organization ID to specify target org
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
-    # Steps to be executed within the deploy job
     steps:
-      # Step 1: Checkout code from the repository
       - name: Checkout code
-        uses: actions/checkout@v3  # GitHub Action to checkout repository code
+        uses: actions/checkout@v3
 
-      # Step 2: Set up the specified Node.js version
       - name: Set up Node.js "${{ matrix.node-version }}"
-        uses: actions/setup-node@v3  # GitHub Action to set up Node.js environment
+        uses: actions/setup-node@v3
         with:
-          node-version: "${{ matrix.node-version }}"  # Use the Node.js version from the matrix
+          node-version: "${{ matrix.node-version }}"
 
-      # Step 3: Install dependencies
+      # Step to Install Vercel CLI version 37.14.0 to match teammate's version
+      - name: Install specific Vercel CLI version (37.14.0)
+        run: yarn global add vercel@37.14.0
+
       - name: Install dependencies
         run: |
-          cd isolora            # Navigate to the project directory
-          yarn install          # Install all project dependencies using Yarn
+          cd isolora
+          yarn install
 
-      # Step 4: Build for deployment
       - name: Build for deployment
         run: |
-          cd isolora            # Ensure we are in the project directory
-          yarn build            # Run the build command to prepare code for deployment
+          cd isolora
+          yarn build
 
-      # Step 5: Deploy to Vercel
       - name: Deploy to Vercel
         run: |
           cd isolora
-          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID  # Deploy to Vercel in production mode with project and org IDs
+          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID
