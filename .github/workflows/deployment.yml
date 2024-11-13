@@ -110,4 +110,4 @@ jobs:
       - name: Deploy to Vercel
         run: |
           cd isolora
-          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID  # Deploy to Vercel in production mode
+          VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID VERCEL_ORG_ID=$VERCEL_ORG_ID vercel --prod --token $VERCEL_TOKEN  # Deploy to Vercel in production mode using environment variables
