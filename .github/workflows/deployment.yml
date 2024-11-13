@@ -96,23 +96,19 @@ jobs:
         with:
           node-version: "${{ matrix.node-version }}"  # Use the Node.js version from the matrix
 
-      # Step 3: Install latest Vercel CLI (optional step to ensure CLI version consistency)
-      - name: Install latest Vercel CLI
-        run: yarn global add vercel@latest
-
-      # Step 4: Install dependencies
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
           cd isolora            # Navigate to the project directory
           yarn install          # Install all project dependencies using Yarn
 
-      # Step 5: Build for deployment
+      # Step 4: Build for deployment
       - name: Build for deployment
         run: |
           cd isolora            # Ensure we are in the project directory
           yarn build            # Run the build command to prepare code for deployment
 
-      # Step 6: Deploy to Vercel
+      # Step 5: Deploy to Vercel
       - name: Deploy to Vercel
         run: |
           cd isolora
