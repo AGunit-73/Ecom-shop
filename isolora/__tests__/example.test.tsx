@@ -1,4 +1,6 @@
-// __tests__/math.test.ts
+// __tests__/math.test.tsx
+import '@testing-library/jest-dom';
+
 
 test('adds 1 + 2 to equal 3', () => {
     expect(1 + 2).toBe(3);
