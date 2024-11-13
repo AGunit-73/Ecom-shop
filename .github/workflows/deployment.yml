@@ -4,6 +4,7 @@ on:
     branches:
       - main # Adjust if your default branch has a different name
       - development # Add other branches as needed
+      - "*" # This will run on any branch push, modify as needed
   pull_request:
     branches:
       - main
