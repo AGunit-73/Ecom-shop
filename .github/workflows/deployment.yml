@@ -90,7 +90,8 @@ jobs:
           cd isolora
           yarn build
 
-      - name: Deploy to Vercel
+      # Step to Deploy to Vercel with project and org IDs
+      - name: Deploy to Vercel with project and org IDs
         run: |
           cd isolora
-          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID
+          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID || vercel --prod --token $VERCEL_TOKEN
