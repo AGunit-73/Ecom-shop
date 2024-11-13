@@ -32,7 +32,6 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
   const { user } = useUser();
   const { addItemToCart } = useCart();
 
-  // Fetch items on component mount
   useEffect(() => {
     async function fetchItems() {
       try {
@@ -49,13 +48,12 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
     fetchItems();
   }, []);
 
-  // Filter items based on selected category
   useEffect(() => {
-    if (selectedCategory === "All") {
-      setFilteredItems(items);
-    } else {
-      setFilteredItems(items.filter((item) => item.category === selectedCategory));
-    }
+    setFilteredItems(
+      selectedCategory === "All"
+        ? items
+        : items.filter((item) => item.category === selectedCategory)
+    );
   }, [selectedCategory, items]);
 
   const toggleWishlist = (itemId: number) => {
@@ -74,31 +72,21 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
 
     if (!confirm("Are you sure you want to delete this item?")) return;
 
-    const item = items.find((item) => item.itemid === itemId);
-    const imageUrl = item?.image_url;
-
-    if (!imageUrl) {
-      alert("Image URL not found. Cannot delete item.");
-      return;
-    }
-
     try {
       const response = await fetch("/api/product/delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemid: itemId, imageUrl }),
+        body: JSON.stringify({ itemid: itemId }),
       });
 
       if (response.ok) {
         setItems((prevItems) => prevItems.filter((item) => item.itemid !== itemId));
         alert("Item deleted successfully.");
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to delete item.");
+        alert("Failed to delete item.");
       }
     } catch (error) {
       console.error("Error deleting item:", error);
-      alert("An error occurred while deleting the item. Please try again later.");
     }
   };
 
@@ -169,7 +157,6 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
             Price: ${typeof item.price === "number" ? item.price.toFixed(2) : parseFloat(item.price).toFixed(2)}
           </p>
 
-          {/* Vendor controls for updating and deleting items */}
           {user?.role === "vendor" && user.id === item.user_id && (
             <div className="flex items-center space-x-2 mt-4">
               <input
@@ -194,7 +181,6 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
             </div>
           )}
 
-          {/* Wishlist and Add to Cart controls for all users */}
           {user && (
             <div className="flex items-center justify-between w-full mt-4 space-x-4">
               <button

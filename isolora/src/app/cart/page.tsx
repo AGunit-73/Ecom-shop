@@ -7,7 +7,7 @@ import { useCart } from "../context/cartcontext";
 
 interface CartItem {
   cartid: number;
-  product_id: number; 
+  product_id: number;
   name: string;
   price: string | number;
   quantity: number;
@@ -18,8 +18,9 @@ const CartPage = () => {
   const { user } = useUser();
   const { fetchCartCount } = useCart();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Memoize fetchCartItems to avoid recreating the function on each render
+  // Fetch cart items for the user
   const fetchCartItems = useCallback(async () => {
     if (!user?.id) return;
 
@@ -36,6 +37,8 @@ const CartPage = () => {
       }
     } catch (error) {
       console.error("Error in fetchCartItems function:", error);
+    } finally {
+      setLoading(false);
     }
   }, [user?.id, fetchCartCount]);
 
@@ -43,14 +46,14 @@ const CartPage = () => {
     fetchCartItems();
   }, [fetchCartItems]);
 
+  // Refresh cart items after an update
   const refreshCartItems = async () => {
     await fetchCartItems();
   };
 
+  // Handle removal of an item from the cart
   const handleRemove = async (product_id: number) => {
     if (!user?.id) return;
-
-    console.log("Removing item from cart:", { userId: user.id, product_id });
 
     try {
       const response = await fetch(`/api/cart/delete-item?userId=${user.id}&product_id=${product_id}`, {
@@ -74,6 +77,7 @@ const CartPage = () => {
     }
   };
 
+  // Update the quantity of a cart item
   const updateQuantity = async (product_id: number, newQuantity: number) => {
     if (newQuantity < 1 || !user?.id) return;
 
@@ -110,12 +114,14 @@ const CartPage = () => {
     alert("Processing your request—we'll be in touch soon.");
   };
 
+  if (loading) return <p>Loading cart items...</p>;
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
       {cartItems.length > 0 ? (
-        cartItems.map((item: CartItem) => (
-          <div key={item.product_id} className="flex justify-between items-center border-b border-gray-300 py-4">
+        cartItems.map((item, index) => (
+          <div key={`${item.product_id}-${index}`} className="flex justify-between items-center border-b border-gray-300 py-4">
             <div className="flex items-center space-x-4">
               {item.image_url && (
                 <Image
