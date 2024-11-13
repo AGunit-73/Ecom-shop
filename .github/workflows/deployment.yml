@@ -1,5 +1,4 @@
 name: Ecom-Shop CI/CD
-
 on:
   push:
     branches:
@@ -21,10 +20,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js "${{ matrix.node-version }}"
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: "${{ matrix.node-version }}"
 
       - name: Install dependencies
         run: |
@@ -53,10 +52,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js "${{ matrix.node-version }}"
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: "${{ matrix.node-version }}"
 
       - name: Install dependencies
         run: |
