@@ -27,8 +27,8 @@ jobs:
 
     # Environment variables available to all steps in this job
     env:
-      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}  # Secret for encryption key
-      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}    # Secret for encryption IV
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}  # Secret for encryption key, used for data security
+      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}    # Secret for encryption IV, used for data security
 
     # Steps to be executed within the job
     steps:
@@ -76,8 +76,11 @@ jobs:
 
     # Environment variables available to all steps in this job
     env:
-      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}  # Secret for encryption key
-      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}    # Secret for encryption IV
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}      # Secret for encryption key, used for data security
+      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}        # Secret for encryption IV, used for data security
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}          # Secret for Vercel authentication token
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}  # Secret for Vercel project ID to specify target project
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}        # Secret for Vercel organization ID to specify target org
 
     # Steps to be executed within the deploy job
     steps:
@@ -103,9 +106,8 @@ jobs:
           cd isolora            # Ensure we are in the project directory
           yarn build            # Run the build command to prepare code for deployment
 
-      # Step 5: Deployment step (placeholder for actual deployment command)
-      # Uncomment and replace with the actual deployment command if required
-      # - name: Deploy to production
-      #   run: |
-      #     cd isolora
-      #     your_deployment_command_here
+      # Step 5: Deploy to Vercel
+      - name: Deploy to Vercel
+        run: |
+          cd isolora
+          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID  # Deploy to Vercel in production mode
