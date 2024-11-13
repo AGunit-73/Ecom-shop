@@ -76,9 +76,9 @@ jobs:
         with:
           node-version: "${{ matrix.node-version }}"
 
-      # Install Vercel CLI version 38.1.0 or higher
-      - name: Install latest Vercel CLI version (38.1.0)
-        run: yarn global add vercel@38.1.0
+      # Install the latest Vercel CLI version
+      - name: Install latest Vercel CLI
+        run: yarn global add vercel@latest
 
       - name: Install dependencies
         run: |
@@ -93,4 +93,4 @@ jobs:
       - name: Deploy to Vercel
         run: |
           cd isolora
-          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID
+          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID || vercel --prod --token $VERCEL_TOKEN
