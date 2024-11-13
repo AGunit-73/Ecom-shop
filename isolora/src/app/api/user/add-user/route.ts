@@ -6,6 +6,15 @@ export async function POST(request: Request) {
     const { name, email, password, role } = await request.json();
     console.log('Received vendor registration data:', { name, email, password, role });
 
+    // Check for undefined values
+    if (!name || !email || !password || !role) {
+      console.error('Missing required fields:', { name, email, password, role });
+      return NextResponse.json(
+        { success: false, message: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
     const result = await AuthService.signup(name, email, password, role);
 
     if (result.success) {

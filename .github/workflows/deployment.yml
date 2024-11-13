@@ -1,10 +1,11 @@
 name: Ecom-Shop CI/CD
+
 on:
   push:
     branches:
-      - main # Adjust if your default branch has a different name
-      - development # Add other branches as needed
-      - "*" # This will run on any branch push, modify as needed
+      - main
+      - development
+      - "*" # Runs on any branch push
   pull_request:
     branches:
       - main
@@ -15,7 +16,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.20.4] # Use your project’s Node.js version
+        node-version: [18.20.4]
+
+    env:
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
 
     steps:
       - name: Checkout code
@@ -44,10 +49,14 @@ jobs:
   deploy:
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' # Only deploy on pushes to main
+    if: github.ref == 'refs/heads/main'
     strategy:
       matrix:
         node-version: [18.20.4]
+
+    env:
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
 
     steps:
       - name: Checkout code
@@ -68,8 +77,4 @@ jobs:
           cd isolora
           yarn build
 
-      # Add your deployment step here, for example:
-      # - name: Deploy to production
-      #   run: |
-      #     cd isolora
-      #     your_deployment_command_here
+      # Add your deployment step here if required
