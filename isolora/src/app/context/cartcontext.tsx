@@ -22,6 +22,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
       if (data.success) {
         setCartCount(data.cartItems.length);
+      } else {
+        setCartCount(0); // Reset cart count on error
+        console.error("Failed to fetch cart items:", data.message);
       }
     } catch (error) {
       console.error("Error fetching cart count:", error);
@@ -31,12 +34,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const addItemToCart = async (productId: number) => {
     if (!userId) return;
     try {
-      await fetch("/api/cart/add-item", {
+      const response = await fetch("/api/cart/add-item", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, productId, quantity: 1 }),
       });
-      fetchCartCount();
+      const data = await response.json();
+      if (data.success) {
+        fetchCartCount(); // Refresh cart count if item was successfully added
+      } else {
+        console.error("Failed to add item to cart:", data.message);
+      }
     } catch (error) {
       console.error("Error adding item to cart:", error);
     }
