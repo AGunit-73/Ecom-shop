@@ -1,4 +1,5 @@
-// __tests__/math.test.tsx
+// __tests__/math.test.tsx 
+//Importing the testing library
 import '@testing-library/jest-dom';
 
 
