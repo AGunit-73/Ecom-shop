@@ -8,9 +8,18 @@ jest.mock('next/router', () => ({
   useRouter: jest.fn(),
 }));
 
-// Mock `Header` and `ItemList` components
-jest.mock('../src/app/components/header', () => () => <div data-testid="header-component">Header</div>);
-jest.mock('../src/app/components/itemsList', () => () => <div data-testid="item-list-component">ItemList</div>);
+// Mock `Header` and `ItemList` components with display names
+jest.mock('../src/app/components/header', () => {
+  const Header = () => <div data-testid="header-component">Header</div>;
+  Header.displayName = "Header";  // Add display name
+  return Header;
+});
+
+jest.mock('../src/app/components/itemsList', () => {
+  const ItemList = () => <div data-testid="item-list-component">ItemList</div>;
+  ItemList.displayName = "ItemList";  // Add display name
+  return ItemList;
+});
 
 describe('Home Page', () => {
   beforeEach(() => {
