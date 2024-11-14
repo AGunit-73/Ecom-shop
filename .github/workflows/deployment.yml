@@ -64,8 +64,6 @@ jobs:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
     steps:
       - name: Checkout code
@@ -76,8 +74,8 @@ jobs:
         with:
           node-version: "${{ matrix.node-version }}"
 
-      # Install the latest Vercel CLI version
-      - name: Install latest Vercel CLI
+      # Step to install the latest Vercel CLI
+      - name: Install the latest Vercel CLI
         run: yarn global add vercel@latest
 
       - name: Install dependencies
@@ -93,4 +91,4 @@ jobs:
       - name: Deploy to Vercel
         run: |
           cd isolora
-          vercel --prod --token $VERCEL_TOKEN --project $VERCEL_PROJECT_ID --org $VERCEL_ORG_ID || vercel --prod --token $VERCEL_TOKEN
+          vercel --prod --token $VERCEL_TOKEN  # Deploy without specifying --project and --org
