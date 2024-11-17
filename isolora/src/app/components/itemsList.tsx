@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useUser } from "../context/usercontext";
 import { useCart } from "../context/cartcontext";
-import { ShoppingCartIcon, HeartIcon } from "@heroicons/react/24/solid";
+import { ShoppingCartIcon, HeartIcon, StarIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 
 interface Item {
@@ -25,47 +25,95 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
   const [items, setItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
-  const [quantityUpdates, setQuantityUpdates] = useState<{ [key: number]: number | undefined }>({});
+  const [quantityUpdates, setQuantityUpdates] = useState<{ [key: number]: number }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const { user } = useUser();
   const { addItemToCart } = useCart();
 
-  useEffect(() => {
-    async function fetchItems() {
-      try {
-        const res = await fetch("/api/product/get-items");
-        const data = await res.json();
-        setItems(data.items || []);
-      } catch (error) {
-        console.error("Failed to fetch items:", error);
-        setError("Failed to load items. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
+  // Generate fake ratings for items
+  const generateFakeRating = () => Math.floor(Math.random() * 3) + 3; // Ratings between 3 and 5
+
+  // Fetch all items
+  const fetchItems = useCallback(async () => {
+    try {
+      const response = await fetch("/api/product/get-items");
+      const data = await response.json();
+      setItems(
+        data.items
+          ? data.items.filter(
+              (item: Item, index: number, self: Item[]) =>
+                self.findIndex((i) => i.itemid === item.itemid) === index
+            )
+          : []
+      );
+    } catch (error) {
+      console.error("Error fetching items:", error);
+      setError("Failed to load items. Please try again later.");
+    } finally {
+      setLoading(false);
     }
-    fetchItems();
   }, []);
 
-  useEffect(() => {
-    setFilteredItems(
-      selectedCategory === "All"
-        ? items
-        : items.filter((item) => item.category === selectedCategory)
-    );
-  }, [selectedCategory, items]);
+  // Fetch wishlist items
+  const fetchWishlist = useCallback(async () => {
+    if (!user?.id) return;
 
-  const toggleWishlist = (itemId: number) => {
-    setWishlist((prevWishlist) =>
-      prevWishlist.includes(itemId)
-        ? prevWishlist.filter((id) => id !== itemId)
-        : [...prevWishlist, itemId]
-    );
+    try {
+      const response = await fetch(`/api/wishlist/get-items?userId=${user.id}`);
+      const data = await response.json();
+      if (data.success) {
+        setWishlist(data.wishlist.map((item: { productId: number }) => item.productId));
+      }
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+    }
+  }, [user]);
+
+  // Add or remove item from wishlist
+  const toggleWishlist = async (itemId: number) => {
+    if (!user?.id) {
+      alert("Please log in to manage your wishlist.");
+      return;
+    }
+
+    try {
+      if (wishlist.includes(itemId)) {
+        const response = await fetch("/api/wishlist/remove-item", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.id, productId: itemId }),
+        });
+
+        if (response.ok) {
+          setWishlist((prev) => prev.filter((id) => id !== itemId));
+          alert("Removed from wishlist.");
+        } else {
+          alert("Failed to remove item from wishlist.");
+        }
+      } else {
+        const response = await fetch("/api/wishlist/add-item", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.id, productId: itemId }),
+        });
+
+        if (response.ok) {
+          setWishlist((prev) => [...prev, itemId]);
+          alert("Added to wishlist.");
+        } else {
+          alert("Failed to add item to wishlist.");
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling wishlist:", error);
+    }
   };
 
-  const handleDelete = async (itemId: number, userId: number) => {
-    if (user?.id !== userId) {
+  // Delete item
+  const handleDelete = async (itemId: number) => {
+    if (!user || user.role !== "vendor") {
       alert("You do not have permission to delete this item.");
       return;
     }
@@ -80,7 +128,7 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
       });
 
       if (response.ok) {
-        setItems((prevItems) => prevItems.filter((item) => item.itemid !== itemId));
+        setItems((prev) => prev.filter((item) => item.itemid !== itemId));
         alert("Item deleted successfully.");
       } else {
         alert("Failed to delete item.");
@@ -90,23 +138,15 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
     }
   };
 
-  const handleQuantityChange = (itemId: number, newQuantity: number) => {
-    if (newQuantity < 0) {
-      alert("Quantity cannot be negative.");
-      return;
-    }
-    setQuantityUpdates((prev) => ({ ...prev, [itemId]: newQuantity }));
-  };
-
-  const handleUpdateQuantity = async (itemId: number, userId: number) => {
-    if (user?.id !== userId) {
+  // Update quantity
+  const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
+    if (!user || user.role !== "vendor") {
       alert("You do not have permission to update this item.");
       return;
     }
 
-    const newQuantity = quantityUpdates[itemId];
-    if (newQuantity === undefined || newQuantity < 0) {
-      alert("Please enter a valid quantity.");
+    if (newQuantity < 0) {
+      alert("Quantity cannot be negative.");
       return;
     }
 
@@ -118,12 +158,9 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
       });
 
       if (response.ok) {
-        setItems((prevItems) =>
-          prevItems.map((item) =>
-            item.itemid === itemId ? { ...item, quantity: newQuantity } : item
-          )
+        setItems((prev) =>
+          prev.map((item) => (item.itemid === itemId ? { ...item, quantity: newQuantity } : item))
         );
-        setQuantityUpdates((prev) => ({ ...prev, [itemId]: undefined }));
         alert("Quantity updated successfully.");
       } else {
         alert("Failed to update quantity.");
@@ -133,74 +170,120 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
     }
   };
 
+  // Filter items based on category
+  useEffect(() => {
+    setFilteredItems(
+      selectedCategory === "All"
+        ? items
+        : items.filter((item) => item.category === selectedCategory)
+    );
+  }, [selectedCategory, items]);
+
+  // Fetch items and wishlist on mount
+  useEffect(() => {
+    fetchItems();
+    fetchWishlist();
+  }, [fetchItems, fetchWishlist]);
+
   if (loading) return <p>Loading items...</p>;
   if (error) return <p className="text-red-600">{error}</p>;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
-      {filteredItems.map((item) => (
-        <div key={item.itemid} className="bg-white rounded-lg shadow-lg p-4 flex flex-col items-center space-y-4 relative">
-          <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
+      {filteredItems.map((item) => {
+        const rating = generateFakeRating();
 
-          {item.image_url && (
-            <Image
-              src={item.image_url}
-              alt={item.name}
-              width={200}
-              height={200}
-              className="w-full h-48 object-cover rounded-md shadow-sm"
-            />
-          )}
-
-          <p className="text-gray-600">{item.description}</p>
-          <p className="text-gray-700 font-medium">
-            Price: ${typeof item.price === "number" ? item.price.toFixed(2) : parseFloat(item.price).toFixed(2)}
-          </p>
-
-          {user?.role === "vendor" && user.id === item.user_id && (
-            <div className="flex items-center space-x-2 mt-4">
-              <input
-                type="number"
-                value={quantityUpdates[item.itemid] ?? item.quantity}
-                onChange={(e) => handleQuantityChange(item.itemid, parseInt(e.target.value))}
-                className="w-12 p-1 h-6 border border-gray-300 rounded text-center text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                min="0"
+        return (
+          <div
+            key={`${item.itemid}`}
+            className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center space-y-4 transform transition-transform hover:scale-105"
+          >
+            {/* Item Image */}
+            {item.image_url && (
+              <Image
+                src={item.image_url}
+                alt={item.name}
+                width={200}
+                height={200}
+                className="w-full h-48 object-cover rounded-md"
               />
-              <button
-                onClick={() => handleUpdateQuantity(item.itemid, item.user_id)}
-                className="px-2 py-1 bg-green-500 text-white text-sm font-medium rounded-md shadow-md hover:bg-green-600 transition duration-200 ease-in-out"
-              >
-                Update
-              </button>
-              <button
-                onClick={() => handleDelete(item.itemid, item.user_id)}
-                className="px-2 py-1 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition duration-200 ease-in-out"
-              >
-                Delete
-              </button>
-            </div>
-          )}
+            )}
 
-          {user && (
-            <div className="flex items-center justify-between w-full mt-4 space-x-4">
-              <button
-                onClick={() => toggleWishlist(item.itemid)}
-                className={`p-2 rounded-full ${
-                  wishlist.includes(item.itemid) ? "text-red-600" : "text-gray-400"
-                } hover:text-red-500 transition-colors duration-200`}
-              >
-                <HeartIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
-              <button
-                onClick={() => addItemToCart(item.itemid)}
-                className="p-2 rounded-full text-blue-500 hover:text-blue-600 transition-transform transform hover:scale-110 active:scale-90 duration-200 ease-in-out"
-              >
-                <ShoppingCartIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
+            {/* Item Title */}
+            <h3 className="text-lg font-semibold text-gray-800 truncate">{item.name}</h3>
+
+            {/* Ratings */}
+            <div className="flex items-center space-x-1">
+              {Array(rating)
+                .fill(null)
+                .map((_, index) => (
+                  <StarIcon key={index} className="h-5 w-5 text-yellow-400" />
+                ))}
+              {Array(5 - rating)
+                .fill(null)
+                .map((_, index) => (
+                  <StarIcon key={index} className="h-5 w-5 text-gray-300" />
+                ))}
+              <span className="text-gray-500 text-sm">({rating}.0)</span>
             </div>
-          )}
-        </div>
-      ))}
+
+            {/* Item Price */}
+            <p className="text-lg font-medium text-gray-700">
+              Price: $
+              {typeof item.price === "number"
+                ? item.price.toFixed(2)
+                : parseFloat(item.price).toFixed(2)}
+            </p>
+
+            {/* Wishlist and Cart Icons */}
+            {user && (
+              <div className="flex items-center space-x-4 mt-4">
+                <HeartIcon
+                  onClick={() => toggleWishlist(item.itemid)}
+                  className={`h-6 w-6 cursor-pointer ${
+                    wishlist.includes(item.itemid) ? "text-red-600" : "text-gray-400"
+                  } hover:text-red-500`}
+                />
+                <ShoppingCartIcon
+                  onClick={() => addItemToCart(item.itemid)}
+                  className="h-6 w-6 cursor-pointer text-blue-500 hover:text-blue-600"
+                />
+              </div>
+            )}
+
+            {/* Vendor Options */}
+            {user?.role === "vendor" && user.id === item.user_id && (
+              <div className="flex items-center space-x-2 mt-2">
+                <input
+                  type="number"
+                  className="border border-gray-300 rounded px-2 py-1 w-12 text-center text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  value={quantityUpdates[item.itemid] ?? item.quantity}
+                  onChange={(e) =>
+                    setQuantityUpdates((prev) => ({
+                      ...prev,
+                      [item.itemid]: parseInt(e.target.value),
+                    }))
+                  }
+                />
+                <button
+                  onClick={() =>
+                    handleUpdateQuantity(item.itemid, quantityUpdates[item.itemid] ?? item.quantity)
+                  }
+                  className="px-2 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-green-400"
+                >
+                  Update
+                </button>
+                <button
+                  onClick={() => handleDelete(item.itemid)}
+                  className="px-2 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-red-400"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

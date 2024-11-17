@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import Home from '../src/app/page';
 import { useRouter } from 'next/router';
 
@@ -11,13 +11,15 @@ jest.mock('next/router', () => ({
 // Mock `Header` and `ItemList` components with display names
 jest.mock('../src/app/components/header', () => {
   const Header = () => <div data-testid="header-component">Header</div>;
-  Header.displayName = "Header";  // Add display name
+  Header.displayName = "Header"; // Add display name
   return Header;
 });
 
 jest.mock('../src/app/components/itemsList', () => {
-  const ItemList = () => <div data-testid="item-list-component">ItemList</div>;
-  ItemList.displayName = "ItemList";  // Add display name
+  const ItemList = ({ selectedCategory }: { selectedCategory: string }) => (
+    <div data-testid="item-list-component">{`ItemList - Category: ${selectedCategory}`}</div>
+  );
+  ItemList.displayName = "ItemList"; // Add display name
   return ItemList;
 });
 
@@ -38,16 +40,39 @@ describe('Home Page', () => {
     expect(header).toBeInTheDocument();
   });
 
-  it('renders the main heading', () => {
+  it('renders the category navbar with correct categories', () => {
     render(<Home />);
-    const heading = screen.getByRole('heading', { level: 1 });
-    expect(heading).toBeInTheDocument();
-    expect(heading).toHaveTextContent('Welcome to Isolora');
+    const categories = ['All', 'Indian Wear', 'Western Wear', 'Footwear'];
+    categories.forEach((category) => {
+      const button = screen.getByRole('button', { name: category });
+      expect(button).toBeInTheDocument();
+    });
   });
 
-  it('renders the ItemList component', () => {
+  it('changes the selected category when a category button is clicked', () => {
     render(<Home />);
+    const categoryButton = screen.getByRole('button', { name: 'Indian Wear' });
+
+    // Click on the "Indian Wear" category button
+    fireEvent.click(categoryButton);
+
+    // Check that the "Indian Wear" button is selected
+    expect(categoryButton).toHaveClass('bg-blue-600 text-white');
+
+    // Check that other buttons are not selected
+    const allButton = screen.getByRole('button', { name: 'All' });
+    expect(allButton).not.toHaveClass('bg-blue-600 text-white');
+  });
+
+  it('renders the ItemList component with the selected category', () => {
+    render(<Home />);
+    const categoryButton = screen.getByRole('button', { name: 'Footwear' });
+
+    // Click on the "Footwear" category button
+    fireEvent.click(categoryButton);
+
+    // Verify that ItemList displays the correct category
     const itemList = screen.getByTestId('item-list-component');
-    expect(itemList).toBeInTheDocument();
+    expect(itemList).toHaveTextContent('ItemList - Category: Footwear');
   });
 });
