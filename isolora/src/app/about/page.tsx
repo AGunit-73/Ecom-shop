@@ -65,7 +65,44 @@ const AboutPage = () => {
                 </div>
               </div>
             </SwiperSlide>
-            {/* Additional slides */}
+
+            <SwiperSlide>
+              <div
+                className="w-full h-full bg-cover bg-center relative"
+                style={{
+                  backgroundImage: "url('/image2.jpg')",
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black"></div>
+                <div className="flex items-center justify-center h-full text-white text-center px-4">
+                  <div>
+                    <h2 className="text-3xl font-bold mb-2">Our Vision</h2>
+                    <p className="text-lg">
+                      Empowering individuals through innovative and sustainable fashion.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </SwiperSlide>
+
+            <SwiperSlide>
+              <div
+                className="w-full h-full bg-cover bg-center relative"
+                style={{
+                  backgroundImage: "url('/image3.jpg')",
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black"></div>
+                <div className="flex items-center justify-center h-full text-white text-center px-4">
+                  <div>
+                    <h2 className="text-3xl font-bold mb-2">Our Values</h2>
+                    <p className="text-lg">
+                      Integrity, innovation, and inclusivity in everything we do.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </SwiperSlide>
           </Swiper>
         </div>
 
