@@ -19,13 +19,7 @@ export default function Home() {
       {/* Floating Navbar */}
       <Header />
 
-      {/* Hero Banner */}
-      <section className="flex flex-col items-center justify-center bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-        <h1 className="text-4xl font-bold mb-2">Welcome to Isolora</h1>
-        <p className="text-lg max-w-2xl text-center">
-          Discover a unique collection of fashion and accessories. Shop by category, explore new arrivals, or find the perfect style for any occasion.
-        </p>
-      </section>
+   
 
       {/* Category Navbar */}
       <nav className="flex justify-center mt-4 space-x-4 bg-white py-2 shadow-md sticky top-0 z-10">

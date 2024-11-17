@@ -12,6 +12,7 @@ interface CartItem {
   price: string | number;
   quantity: number;
   image_url: string | null;
+  estimatedDelivery: string;
 }
 
 const CartPage = () => {
@@ -19,18 +20,35 @@ const CartPage = () => {
   const { fetchCartCount } = useCart();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [promoCode, setPromoCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [isPromoValid, setIsPromoValid] = useState(false);
 
-  // Fetch cart items for the user
+  // Define a fixed sales tax
+  const salesTax = 0.1;
+
+  const validPromoCodes: { [key: string]: number } = {
+    DISCOUNT10: 0.1,
+    SAVE20: 0.2,
+    FLASHSALE30: 0.3,
+    FREESHIP50: 0.5,
+  };
+
   const fetchCartItems = useCallback(async () => {
     if (!user?.id) return;
-
     try {
       const response = await fetch(`/api/cart/get-items?userId=${user.id}`);
-      const data = await response.json();
-
+      const data: { success: boolean; cartItems: CartItem[]; message?: string } =
+        await response.json();
       if (data.success) {
-        console.log("Fetched cart items:", data.cartItems);
-        setCartItems(data.cartItems);
+        const updatedCartItems: CartItem[] = data.cartItems.map((item) => ({
+          ...item,
+          estimatedDelivery: new Date(
+            Date.now() + 5 * 24 * 60 * 60 * 1000
+          ).toLocaleDateString(),
+        }));
+        setCartItems(updatedCartItems);
+        localStorage.setItem("cartItems", JSON.stringify(updatedCartItems));
         fetchCartCount();
       } else {
         console.error("Error fetching cart items:", data.message);
@@ -43,41 +61,13 @@ const CartPage = () => {
   }, [user?.id, fetchCartCount]);
 
   useEffect(() => {
+    const savedCart = localStorage.getItem("cartItems");
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
     fetchCartItems();
   }, [fetchCartItems]);
 
-  // Refresh cart items after an update
-  const refreshCartItems = async () => {
-    await fetchCartItems();
-  };
-
-  // Handle removal of an item from the cart
-  const handleRemove = async (product_id: number) => {
-    if (!user?.id) return;
-
-    try {
-      const response = await fetch(`/api/cart/delete-item?userId=${user.id}&product_id=${product_id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        const data = await response.json().catch(() => null);
-        if (data?.success) {
-          console.log(`Item successfully removed: product_id ${product_id}`);
-          await refreshCartItems();
-          fetchCartCount();
-        } else {
-          console.error("Failed to remove item from cart:", data?.message || "Unknown error");
-        }
-      } else {
-        console.error("Error: Received non-OK response", response.status);
-      }
-    } catch (error) {
-      console.error("Error in handleRemove function:", error);
-    }
-  };
-
-  // Update the quantity of a cart item
   const updateQuantity = async (product_id: number, newQuantity: number) => {
     if (newQuantity < 1 || !user?.id) return;
 
@@ -87,92 +77,218 @@ const CartPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          userId: user.id, 
-          product_id,
-          quantity: newQuantity 
-        }),
+        body: JSON.stringify({ userId: user.id, product_id, quantity: newQuantity }),
       });
 
-      const data = await response.json();
-      if (data.success) {
-        console.log(`Quantity updated for product_id: ${product_id} to ${newQuantity}`);
-        setCartItems((prevItems) =>
-          prevItems.map((item) =>
-            item.product_id === product_id ? { ...item, quantity: newQuantity } : item
-          )
-        );
+      if (response.ok) {
+        setCartItems((prevItems) => {
+          const updatedItems = prevItems.map((item) =>
+            item.product_id === product_id
+              ? { ...item, quantity: newQuantity }
+              : item
+          );
+          localStorage.setItem("cartItems", JSON.stringify(updatedItems));
+          return updatedItems;
+        });
       } else {
-        console.error("Error updating quantity:", data.message);
+        console.error("Error updating quantity");
       }
     } catch (error) {
       console.error("Error updating quantity:", error);
     }
   };
 
-  const handleBuyRequest = () => {
-    alert("Processing your request—we'll be in touch soon.");
+  const handleRemove = async (product_id: number) => {
+    if (!user?.id) return;
+
+    try {
+      const response = await fetch(
+        `/api/cart/delete-item?userId=${user.id}&product_id=${product_id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        setCartItems((prevItems) => {
+          const updatedItems = prevItems.filter(
+            (item) => item.product_id !== product_id
+          );
+          localStorage.setItem("cartItems", JSON.stringify(updatedItems));
+          return updatedItems;
+        });
+        fetchCartCount();
+      } else {
+        console.error("Failed to remove item from cart");
+      }
+    } catch (error) {
+      console.error("Error in handleRemove function:", error);
+    }
   };
 
-  if (loading) return <p>Loading cart items...</p>;
+  const applyPromoCode = () => {
+    if (promoCode in validPromoCodes) {
+      setDiscount(validPromoCodes[promoCode]);
+      setIsPromoValid(true);
+      alert(`Promo code applied! You saved ${validPromoCodes[promoCode] * 100}%`);
+    } else {
+      setDiscount(0);
+      setIsPromoValid(false);
+      alert("Invalid promo code.");
+    }
+  };
+
+  const calculateSubtotal = () =>
+    cartItems.reduce(
+      (sum, item) => sum + parseFloat(item.price as string) * item.quantity,
+      0
+    );
+
+  const calculateDiscount = () => calculateSubtotal() * discount;
+
+  const calculateTax = () => calculateSubtotal() * salesTax;
+
+  const calculateTotal = () =>
+    calculateSubtotal() - calculateDiscount() + calculateTax();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
-      {cartItems.length > 0 ? (
-        cartItems.map((item, index) => (
-          <div key={`${item.product_id}-${index}`} className="flex justify-between items-center border-b border-gray-300 py-4">
-            <div className="flex items-center space-x-4">
-              {item.image_url && (
-                <Image
-                  src={item.image_url}
-                  alt={item.name}
-                  width={64}
-                  height={64}
-                  className="object-cover rounded-md"
+    <div className="p-6 max-w-5xl mx-auto">
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold">
+          {user?.name ? `${user.name}'s Cart` : "Your Cart"}
+        </h1>
+        <p className="text-gray-600">({cartItems.length} items)</p>
+      </header>
+
+      {cartItems.length === 0 ? (
+        <div className="text-center py-10">
+          <h2 className="text-xl font-semibold text-gray-700">
+            Your cart is empty
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Add items to your cart to see them here.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="border-t border-gray-300">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr className="text-left text-sm font-medium text-gray-600">
+                  <th className="py-3">Item</th>
+                  <th className="py-3">Price</th>
+                  <th className="py-3">Quantity</th>
+                  <th className="py-3">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {cartItems.map((item) => (
+                  <tr key={item.cartid}>
+                    <td className="py-4">
+                      <div className="flex items-center">
+                        {item.image_url && (
+                          <Image
+                            src={item.image_url}
+                            alt={item.name}
+                            width={50}
+                            height={50}
+                            className="rounded-md mr-4"
+                          />
+                        )}
+                        <div>
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-sm text-gray-500">
+                            Estimated Delivery:{" "}
+                            {item.estimatedDelivery || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 text-gray-700">
+                      ${parseFloat(item.price as string).toFixed(2)}
+                    </td>
+                    <td className="py-4">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.product_id, item.quantity - 1)
+                          }
+                          className="px-2 bg-gray-200"
+                        >
+                          -
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.product_id, item.quantity + 1)
+                          }
+                          className="px-2 bg-gray-200"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-4 text-gray-700">
+                      ${(
+                        item.quantity * parseFloat(item.price as string)
+                      ).toFixed(2)}
+                    </td>
+                    <td className="py-4">
+                      <button
+                        onClick={() => handleRemove(item.product_id)}
+                        className="px-4 bg-red-500 text-white rounded hover:bg-red-600"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-6 border-t border-gray-300 pt-6">
+            <div className="flex justify-between text-gray-700 mb-2">
+              <p>Subtotal:</p>
+              <p>${calculateSubtotal().toFixed(2)}</p>
+            </div>
+            <div className="flex justify-between text-gray-700 mb-2">
+              <p>Sales Tax:</p>
+              <p>${calculateTax().toFixed(2)}</p>
+            </div>
+            <div className="flex justify-between text-gray-700 mb-2">
+              <p>Coupon Code:</p>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  placeholder="Add Coupon"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className={`border px-2 py-1 rounded ${
+                    isPromoValid ? "border-green-500" : "border-gray-300"
+                  }`}
                 />
-              )}
-              <div>
-                <p className="font-semibold">{item.name}</p>
-                <p className="text-gray-600">Quantity: {item.quantity}</p>
-                <p className="text-gray-700">
-                  Price: ${(parseFloat(item.price as string) * item.quantity).toFixed(2)}
-                </p>
-                <div className="flex space-x-2 mt-2">
-                  <button
-                    onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                    className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
-                  >
-                    -
-                  </button>
-                  <span className="px-3 py-1 border rounded">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                    className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
-                  >
-                    +
-                  </button>
-                </div>
+                <button
+                  onClick={applyPromoCode}
+                  className="px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Apply
+                </button>
               </div>
             </div>
-            <div className="flex space-x-4">
-              <button
-                onClick={handleBuyRequest}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300"
-              >
-                Buy
-              </button>
-              <button
-                onClick={() => handleRemove(item.product_id)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300"
-              >
-                Remove
-              </button>
+            <div className="flex justify-between font-bold text-gray-900 mt-4">
+              <p>Grand Total:</p>
+              <p>${calculateTotal().toFixed(2)}</p>
             </div>
+            <button className="w-full bg-green-600 text-white py-2 mt-4 rounded hover:bg-green-700">
+              Checkout
+            </button>
           </div>
-        ))
-      ) : (
-        <p className="text-center text-gray-600">Your cart is empty.</p>
+        </>
       )}
     </div>
   );
