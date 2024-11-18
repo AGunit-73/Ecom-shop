@@ -11,7 +11,7 @@ jest.mock('next/router', () => ({
 // Mock `Header` and `ItemList` components with display names
 jest.mock('../src/app/components/header', () => {
   const Header = () => <div data-testid="header-component">Header</div>;
-  Header.displayName = "Header"; // Add display name
+  Header.displayName = 'Header'; // Add display name
   return Header;
 });
 
@@ -19,7 +19,7 @@ jest.mock('../src/app/components/itemsList', () => {
   const ItemList = ({ selectedCategory }: { selectedCategory: string }) => (
     <div data-testid="item-list-component">{`ItemList - Category: ${selectedCategory}`}</div>
   );
-  ItemList.displayName = "ItemList"; // Add display name
+  ItemList.displayName = 'ItemList'; // Add display name
   return ItemList;
 });
 
@@ -32,6 +32,11 @@ describe('Home Page', () => {
       replace: jest.fn(),
       query: {},
     });
+  });
+
+  // Mock `scrollIntoView` to prevent errors during tests
+  beforeAll(() => {
+    HTMLElement.prototype.scrollIntoView = jest.fn();
   });
 
   it('renders the Header component', () => {
@@ -74,5 +79,16 @@ describe('Home Page', () => {
     // Verify that ItemList displays the correct category
     const itemList = screen.getByTestId('item-list-component');
     expect(itemList).toHaveTextContent('ItemList - Category: Footwear');
+  });
+
+  it('smoothly scrolls to the ItemList when a category is selected', () => {
+    render(<Home />);
+    const categoryButton = screen.getByRole('button', { name: 'Footwear' });
+
+    // Click on the "Footwear" category button
+    fireEvent.click(categoryButton);
+
+    // Ensure `scrollIntoView` was called
+    expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalled();
   });
 });

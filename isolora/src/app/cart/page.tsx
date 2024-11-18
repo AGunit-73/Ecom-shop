@@ -36,67 +36,62 @@ const CartPage = () => {
 
   const fetchCartItems = useCallback(async () => {
     if (!user?.id) return;
+    setLoading(true);
     try {
       const response = await fetch(`/api/cart/get-items?userId=${user.id}`);
-      const data: { success: boolean; cartItems: CartItem[]; message?: string } =
-        await response.json();
+      const data = await response.json();
+
       if (data.success) {
-        const updatedCartItems: CartItem[] = data.cartItems.map((item) => ({
+        const updatedCartItems = data.cartItems.map((item: CartItem) => ({
           ...item,
           estimatedDelivery: new Date(
             Date.now() + 5 * 24 * 60 * 60 * 1000
           ).toLocaleDateString(),
         }));
         setCartItems(updatedCartItems);
-        localStorage.setItem("cartItems", JSON.stringify(updatedCartItems));
-        fetchCartCount();
       } else {
         console.error("Error fetching cart items:", data.message);
+        setCartItems([]);
       }
     } catch (error) {
-      console.error("Error in fetchCartItems function:", error);
+      console.error("Error in fetchCartItems:", error);
     } finally {
       setLoading(false);
     }
-  }, [user?.id, fetchCartCount]);
+  }, [user?.id]);
 
   useEffect(() => {
-    const savedCart = localStorage.getItem("cartItems");
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
     fetchCartItems();
   }, [fetchCartItems]);
 
   const updateQuantity = async (product_id: number, newQuantity: number) => {
-    if (newQuantity < 1 || !user?.id) return;
-
+    if (newQuantity < 1 || !user?.id) {
+      console.error("Invalid quantity or user ID");
+      return;
+    }
+  
     try {
       const response = await fetch("/api/cart/update-quantity", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId: user.id, product_id, quantity: newQuantity }),
+        body: JSON.stringify({ userId: user.id, productId: product_id, quantity: newQuantity }),
       });
-
+  
+      const result = await response.json();
+  
       if (response.ok) {
-        setCartItems((prevItems) => {
-          const updatedItems = prevItems.map((item) =>
-            item.product_id === product_id
-              ? { ...item, quantity: newQuantity }
-              : item
-          );
-          localStorage.setItem("cartItems", JSON.stringify(updatedItems));
-          return updatedItems;
-        });
+        console.log("Quantity updated successfully:", result);
+        await fetchCartItems();
       } else {
-        console.error("Error updating quantity");
+        console.error("Failed to update quantity:", result.message);
       }
     } catch (error) {
       console.error("Error updating quantity:", error);
     }
   };
+  
 
   const handleRemove = async (product_id: number) => {
     if (!user?.id) return;
@@ -110,13 +105,7 @@ const CartPage = () => {
       );
 
       if (response.ok) {
-        setCartItems((prevItems) => {
-          const updatedItems = prevItems.filter(
-            (item) => item.product_id !== product_id
-          );
-          localStorage.setItem("cartItems", JSON.stringify(updatedItems));
-          return updatedItems;
-        });
+        await fetchCartItems();
         fetchCartCount();
       } else {
         console.error("Failed to remove item from cart");
@@ -183,6 +172,7 @@ const CartPage = () => {
                   <th className="py-3">Price</th>
                   <th className="py-3">Quantity</th>
                   <th className="py-3">Total</th>
+                  <th className="py-3">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
