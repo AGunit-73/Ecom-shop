@@ -31,46 +31,59 @@ export default function ItemForm() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
+  
     if (!user) {
       alert("User is not logged in.");
       return;
     }
-
+  
     if (!inputFileRef.current?.files) {
-      throw new Error("No file selected");
+      alert("Please select a file to upload.");
+      return;
     }
-
+  
+    // Validate quantity
+    const parsedQuantity = parseInt(quantity);
+    if (parsedQuantity <= 0) {
+      alert("Quantity must be greater than zero.");
+      return;
+    }
+  
     const file = inputFileRef.current.files[0];
-
-    const response = await fetch(`/api/product/upload?filename=${file.name}`, {
-      method: "POST",
-      body: file,
-    });
-
-    const blob: BlobResult = await response.json();
-
-    setBlobUrl(blob.url);
-
-    const newItem: Item = {
-      name,
-      category,
-      description,
-      price: parseFloat(price),
-      quantity: parseInt(quantity),
-      imageUrl: blob.url,
-      user_id: user.id,
-    };
-
-    await fetch("/api/product/add-items", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newItem),
-    });
-
-    alert("Item added successfully!");
-    router.push("/");
+  
+    try {
+      const response = await fetch(`/api/product/upload?filename=${file.name}`, {
+        method: "POST",
+        body: file,
+      });
+  
+      const blob: BlobResult = await response.json();
+      setBlobUrl(blob.url);
+  
+      const newItem: Item = {
+        name,
+        category,
+        description,
+        price: parseFloat(price),
+        quantity: parsedQuantity,
+        imageUrl: blob.url,
+        user_id: user.id,
+      };
+  
+      await fetch("/api/product/add-items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newItem),
+      });
+  
+      alert("Item added successfully!");
+      router.push("/");
+    } catch (error) {
+      console.error("Error uploading item:", error);
+      alert("An error occurred while adding the item. Please try again.");
+    }
   };
+  
 
   return (
     <div
