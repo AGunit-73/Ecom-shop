@@ -1,8 +1,10 @@
-"use client" 
+"use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/usercontext";
 import { FaSpinner, FaLock, FaEnvelope, FaUserPlus } from "react-icons/fa";
+import Image from "next/image";
 
 export default function AuthForm() {
   const router = useRouter();
@@ -67,7 +69,7 @@ export default function AuthForm() {
           role: userRole,
         }),
       });
-      
+
       const data = await res.json();
       if (data.success) {
         setIsLogin(true);
@@ -83,36 +85,54 @@ export default function AuthForm() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-lg w-full max-w-md mx-auto">
-        <h2 className="text-3xl font-bold mb-6 text-blue-600 text-center">
+    <div
+      className="min-h-screen bg-cover bg-center flex items-center justify-center"
+      style={{ backgroundImage: "url('/signup.jpg')" }}
+    >
+      <div className="bg-white bg-opacity-90 p-8 rounded-2xl shadow-xl w-full max-w-lg mx-auto">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <Image
+            src="/logooo.jpg"
+            alt="Isolora Logo"
+            width={100}
+            height={100}
+            priority
+          />
+        </div>
+        {/* Title */}
+        <h2 className="text-3xl font-extrabold text-center text-indigo-600 mb-6">
           {isLogin ? "Log In" : "Sign Up"}
         </h2>
+        {/* Error Message */}
         {error && (
-          <p className="text-red-500 text-center mb-4" aria-live="polite">{error}</p>
+          <p className="text-red-500 text-center mb-4" aria-live="polite">
+            {error}
+          </p>
         )}
-        <form 
+        {/* Form */}
+        <form
           onSubmit={(e) => e.preventDefault()}
-          autoComplete="off" 
-          className="space-y-4"
+          className="space-y-5"
+          autoComplete="off"
         >
           {!isLogin && (
             <>
               <div className="relative">
-                <FaUserPlus className="absolute left-3 top-3 text-gray-400" />
+                <FaUserPlus className="absolute left-4 top-3 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Name"
                   value={signupName}
                   onChange={(e) => setSignupName(e.target.value)}
-                  className="pl-10 p-2 border rounded w-full focus:border-blue-500 text-black"
+                  className="pl-12 p-3 border border-gray-300 rounded-lg w-full focus:border-indigo-500 bg-gray-50"
                 />
               </div>
               <div className="relative">
                 <select
                   value={userRole}
                   onChange={(e) => setUserRole(e.target.value)}
-                  className="p-2 pl-10 border rounded w-full focus:border-blue-500 text-black"
+                  className="pl-3 p-3 border border-gray-300 rounded-lg w-full focus:border-indigo-500 bg-gray-50"
                 >
                   <option value="customer">Customer</option>
                   <option value="vendor">Vendor</option>
@@ -121,33 +141,33 @@ export default function AuthForm() {
             </>
           )}
           <div className="relative">
-            <FaEnvelope className="absolute left-3 top-3 text-gray-400" />
+            <FaEnvelope className="absolute left-4 top-3 text-gray-400" />
             <input
               type="email"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 p-2 border rounded w-full focus:border-blue-500 text-black"
+              className="pl-12 p-3 border border-gray-300 rounded-lg w-full focus:border-indigo-500 bg-gray-50"
             />
           </div>
           <div className="relative">
-            <FaLock className="absolute left-3 top-3 text-gray-400" />
+            <FaLock className="absolute left-4 top-3 text-gray-400" />
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 p-2 border rounded w-full focus:border-blue-500 text-black"
+              className="pl-12 p-3 border border-gray-300 rounded-lg w-full focus:border-indigo-500 bg-gray-50"
             />
           </div>
           <button
             type="button"
             onClick={isLogin ? handleLogin : handleSignup}
-            className="flex justify-center items-center bg-blue-600 text-white px-4 py-2 rounded w-full transition hover:bg-blue-700"
+            className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition"
             disabled={loading}
           >
             {loading ? (
-              <FaSpinner className="animate-spin mr-2" />
+              <FaSpinner className="animate-spin" />
             ) : isLogin ? (
               "Log In"
             ) : (
@@ -155,14 +175,14 @@ export default function AuthForm() {
             )}
           </button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-gray-600">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <span
             onClick={() => {
               setIsLogin(!isLogin);
               setError("");
             }}
-            className="text-blue-600 cursor-pointer hover:underline"
+            className="text-indigo-600 font-medium cursor-pointer hover:underline"
           >
             {isLogin ? "Sign up" : "Log in"}
           </span>

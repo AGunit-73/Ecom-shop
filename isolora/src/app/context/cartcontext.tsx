@@ -1,10 +1,26 @@
 "use client";
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
 import { useUser } from "./usercontext";
+
+interface CartItem {
+  id: number;
+  productId: number;
+  quantity: number;
+}
 
 interface CartContextType {
   cartCount: number;
-  addItemToCart: (productId: number) => void;
+  cartItems: CartItem[];
+  addItemToCart: (productId: number, quantity?: number) => void;
+  fetchCartItems: () => void;
   fetchCartCount: () => void;
 }
 
@@ -14,7 +30,26 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useUser();
   const userId = user?.id;
   const [cartCount, setCartCount] = useState(0);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
+  // Fetch cart items from API
+  const fetchCartItems = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const response = await fetch(`/api/cart/get-items?userId=${userId}`);
+      const data = await response.json();
+      if (data.success) {
+        setCartItems(data.cartItems);
+      } else {
+        console.error("Failed to fetch cart items:", data.message);
+        setCartItems([]);
+      }
+    } catch (error) {
+      console.error("Error fetching cart items:", error);
+    }
+  }, [userId]);
+
+  // Fetch cart count from API
   const fetchCartCount = useCallback(async () => {
     if (!userId) return;
     try {
@@ -23,39 +58,101 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (data.success) {
         setCartCount(data.cartItems.length);
       } else {
-        setCartCount(0); // Reset cart count on error
-        console.error("Failed to fetch cart items:", data.message);
+        console.error("Failed to fetch cart count:", data.message);
+        setCartCount(0);
       }
     } catch (error) {
       console.error("Error fetching cart count:", error);
     }
   }, [userId]);
 
-  const addItemToCart = async (productId: number) => {
-    if (!userId) return;
+  // Add item to cart
+  const addItemToCart = async (productId: number, quantity: number = 1) => {
+    if (!userId) {
+      alert("Please log in to add items to your cart.");
+      return;
+    }
+  
     try {
-      const response = await fetch("/api/cart/add-item", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, productId, quantity: 1 }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        fetchCartCount(); // Refresh cart count if item was successfully added
+      const existingItem = cartItems.find((item) => item.productId === productId);
+  
+      if (existingItem) {
+        // Prompt user if the item already exists in the cart
+        const increaseQuantity = confirm(
+          "This item is already in your cart. Do you want to increase the quantity?"
+        );
+  
+        if (increaseQuantity) {
+          const updatedQuantity = existingItem.quantity + quantity;
+  
+          const response = await fetch("/api/cart/update-quantity", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, productId, quantity: updatedQuantity }),
+          });
+  
+          const updateData = await response.json();
+  
+          if (response.ok) {
+            // Update local state
+            setCartItems((prevItems) =>
+              prevItems.map((item) =>
+                item.productId === productId
+                  ? { ...item, quantity: updatedQuantity }
+                  : item
+              )
+            );
+            setCartCount((prevCount) => prevCount + quantity);
+            alert("Item quantity updated successfully!");
+          } else {
+            console.error("Failed to update item quantity:", updateData.message);
+            alert(updateData.message || "Failed to update item quantity.");
+          }
+        }
       } else {
-        console.error("Failed to add item to cart:", data.message);
+        // Add new item if it doesn't exist
+        const response = await fetch("/api/cart/add-item", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, productId, quantity }),
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          setCartItems((prevItems) => [
+            ...prevItems,
+            { id: Date.now(), productId, quantity },
+          ]);
+          setCartCount((prevCount) => prevCount + quantity);
+          alert("Item added to your cart successfully!");
+        } else {
+          console.error("Failed to add item to cart:", data.message);
+          alert(data.message || "Failed to add item to cart.");
+        }
       }
     } catch (error) {
       console.error("Error adding item to cart:", error);
+      alert("An unexpected error occurred while adding the item to your cart.");
     }
   };
+  
 
   useEffect(() => {
+    fetchCartItems();
     fetchCartCount();
-  }, [fetchCartCount]);
+  }, [fetchCartItems, fetchCartCount]);
 
   return (
-    <CartContext.Provider value={{ cartCount, addItemToCart, fetchCartCount }}>
+    <CartContext.Provider
+      value={{
+        cartCount,
+        cartItems,
+        addItemToCart,
+        fetchCartItems,
+        fetchCartCount,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
