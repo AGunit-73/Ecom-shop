@@ -91,4 +91,4 @@ jobs:
       - name: Deploy to Vercel
         run: |
           cd isolora
-          vercel --prod --token $VERCEL_TOKEN  # Deploy without specifying --project and --org
+          vercel --prod --yes --token $VERCEL_TOKEN  # Added --yes flag to confirm deployment
