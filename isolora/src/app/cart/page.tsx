@@ -176,68 +176,62 @@ const CartPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {cartItems.map((item) => (
-                  <tr key={item.cartid}>
-                    <td className="py-4">
-                      <div className="flex items-center">
-                        {item.image_url && (
-                          <Image
-                            src={item.image_url}
-                            alt={item.name}
-                            width={50}
-                            height={50}
-                            className="rounded-md mr-4"
-                          />
-                        )}
-                        <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-gray-500">
-                            Estimated Delivery:{" "}
-                            {item.estimatedDelivery || "N/A"}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 text-gray-700">
-                      ${parseFloat(item.price as string).toFixed(2)}
-                    </td>
-                    <td className="py-4">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.product_id, item.quantity - 1)
-                          }
-                          className="px-2 bg-gray-200"
-                        >
-                          -
-                        </button>
-                        <span>{item.quantity}</span>
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.product_id, item.quantity + 1)
-                          }
-                          className="px-2 bg-gray-200"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </td>
-                    <td className="py-4 text-gray-700">
-                      ${(
-                        item.quantity * parseFloat(item.price as string)
-                      ).toFixed(2)}
-                    </td>
-                    <td className="py-4">
-                      <button
-                        onClick={() => handleRemove(item.product_id)}
-                        className="px-4 bg-red-500 text-white rounded hover:bg-red-600"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+  {cartItems.map((item, index) => (
+    <tr key={item.cartid || item.product_id || index}>
+      <td className="py-4">
+        <div className="flex items-center">
+          {item.image_url && (
+            <Image
+              src={item.image_url}
+              alt={item.name}
+              width={50}
+              height={50}
+              className="rounded-md mr-4"
+            />
+          )}
+          <div>
+            <p className="font-medium">{item.name}</p>
+            <p className="text-sm text-gray-500">
+              Estimated Delivery: {item.estimatedDelivery || "N/A"}
+            </p>
+          </div>
+        </div>
+      </td>
+      <td className="py-4 text-gray-700">
+        ${parseFloat(item.price as string).toFixed(2)}
+      </td>
+      <td className="py-4">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
+            className="px-2 bg-gray-200"
+          >
+            -
+          </button>
+          <span>{item.quantity}</span>
+          <button
+            onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
+            className="px-2 bg-gray-200"
+          >
+            +
+          </button>
+        </div>
+      </td>
+      <td className="py-4 text-gray-700">
+        ${(item.quantity * parseFloat(item.price as string)).toFixed(2)}
+      </td>
+      <td className="py-4">
+        <button
+          onClick={() => handleRemove(item.product_id)}
+          className="px-4 bg-red-500 text-white rounded hover:bg-red-600"
+        >
+          Remove
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
             </table>
           </div>
 
