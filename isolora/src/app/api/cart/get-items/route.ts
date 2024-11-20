@@ -1,4 +1,3 @@
-// /api/cart/get-items/route.ts
 import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
 
@@ -7,6 +6,7 @@ export async function GET(request: Request) {
   const userId = searchParams.get("userId");
 
   if (!userId) {
+    console.error("No userId provided in the request.");
     return NextResponse.json({ success: false, message: "User ID is required" }, { status: 400 });
   }
 
@@ -18,13 +18,13 @@ export async function GET(request: Request) {
       WHERE cart.user_id = ${userId};
     `;
 
-    // Create response and set cache-control headers
-    const response = NextResponse.json({ success: true, cartItems: cartItems.rows });
-    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    response.headers.set("Expires", "0");
-    response.headers.set("Surrogate-Control", "no-store");
+    console.log("Fetched Cart Items:", cartItems.rows);
 
-    return response;
+    if (cartItems.rows.length === 0) {
+      return NextResponse.json({ success: true, cartItems: [], message: "Cart is empty" });
+    }
+
+    return NextResponse.json({ success: true, cartItems: cartItems.rows });
   } catch (error) {
     console.error("Error fetching cart items:", error);
     return NextResponse.json({ success: false, message: "Database error" }, { status: 500 });

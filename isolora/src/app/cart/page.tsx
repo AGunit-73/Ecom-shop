@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { useUser } from "../context/usercontext";
 import { useCart } from "../context/cartcontext";
+import { useRouter } from "next/navigation";
 
 interface CartItem {
   cartid: number;
@@ -23,6 +24,12 @@ const CartPage = () => {
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [isPromoValid, setIsPromoValid] = useState(false);
+  const router = useRouter();
+
+  
+  const handleCheckout = () => {
+    router.push("/checkout");
+    };
 
   // Define a fixed sales tax
   const salesTax = 0.1;
@@ -268,9 +275,13 @@ const CartPage = () => {
               <p>Grand Total:</p>
               <p>${calculateTotal().toFixed(2)}</p>
             </div>
-            <button className="w-full bg-green-600 text-white py-2 mt-4 rounded hover:bg-green-700">
-              Checkout
-            </button>
+            <button
+      onClick={handleCheckout}
+      className="w-full bg-green-600 text-white py-2 mt-4 rounded hover:bg-green-700"
+    >
+      Proceed to Checkout
+    </button>
+
           </div>
         </>
       )}
