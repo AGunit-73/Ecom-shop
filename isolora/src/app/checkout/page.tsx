@@ -5,6 +5,8 @@ import { Elements } from "@stripe/react-stripe-js";
 import CheckoutForm from "../components/CheckoutForm";
 import { useEffect, useState } from "react";
 import { useUser } from "../context/usercontext";
+import Link from "next/link";
+import Image from "next/image";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
@@ -81,12 +83,11 @@ const CheckoutPage = () => {
         <p className="text-red-500">
           {error || "Your cart appears to be empty. Please add items to continue."}
         </p>
-        <a
-          href="/"
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Continue Shopping
-        </a>
+        <Link href="/">
+          <span className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer">
+            Continue Shopping
+          </span>
+        </Link>
       </div>
     );
   }
@@ -98,12 +99,11 @@ const CheckoutPage = () => {
         <p className="text-gray-700 mt-4">
           Thank you for your purchase! Your order will be processed soon.
         </p>
-        <a
-          href="/"
-          className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          Continue Shopping
-        </a>
+        <Link href="/">
+          <span className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer">
+            Continue Shopping
+          </span>
+        </Link>
       </div>
     );
   }
@@ -124,17 +124,17 @@ const CheckoutPage = () => {
         </header>
 
         <section className="bg-gray-50 p-6 rounded-lg border mb-6 shadow-md">
-          <h2 className="text-xl font-semibold text-gray-700 text-center mb-4">
-            Order Summary
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-700 text-center mb-4">Order Summary</h2>
           <ul className="text-gray-600 mt-4 space-y-3">
             {cartItems.map((item) => (
               <li key={item.name} className="flex justify-between items-center py-2 border-b">
                 <span className="flex items-center space-x-3">
-                  <img
+                  <Image
                     src={item.image_url || "/default-image.jpg"}
                     alt={item.name}
-                    className="w-12 h-12 rounded-lg border"
+                    width={48}
+                    height={48}
+                    className="rounded-lg border"
                   />
                   <span className="text-gray-700 font-medium">{item.name}</span>
                 </span>
@@ -165,12 +165,9 @@ const CheckoutPage = () => {
           </div>
         </section>
 
-        
-          
-          <Elements stripe={stripePromise}>
-            <CheckoutForm totalAmount={totalAmount} />
-          </Elements>
-        
+        <Elements stripe={stripePromise}>
+          <CheckoutForm totalAmount={totalAmount} />
+        </Elements>
       </div>
     </div>
   );
