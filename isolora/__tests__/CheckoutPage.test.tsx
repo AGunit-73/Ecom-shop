@@ -75,6 +75,7 @@ describe("CheckoutPage Component", () => {
 
     // Simulate payment success
     act(() => {
+      // Simulating the `paymentSuccess` state directly
       render(
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-pink-100 to-blue-100">
           <h2 className="text-xl font-bold text-green-600">Payment Successful!</h2>
