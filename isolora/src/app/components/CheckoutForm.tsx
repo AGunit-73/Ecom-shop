@@ -1,8 +1,7 @@
-"use client";
-
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { useState } from "react";
 import Link from "next/link";
+import { useUser } from "../context/usercontext"; // Import useUser from your usercontext
 
 const CheckoutForm = ({ totalAmount }: { totalAmount: number }) => {
   const stripe = useStripe();
@@ -11,6 +10,39 @@ const CheckoutForm = ({ totalAmount }: { totalAmount: number }) => {
   const [processing, setProcessing] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card");
+
+  // Access the logged-in user from usercontext
+  const { user } = useUser();
+
+  // Function to clear the cart after payment success
+  const clearCart = async () => {
+    if (!user?.id) {
+      console.error("User is not logged in. Cannot clear cart.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/cart/clear-cart", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id, // Dynamically fetch the user's ID
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Cart cleared successfully!");
+      } else {
+        console.error("Failed to clear the cart:", data.message);
+      }
+    } catch (err) {
+      console.error("Error clearing cart:", err);
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -46,6 +78,7 @@ const CheckoutForm = ({ totalAmount }: { totalAmount: number }) => {
         setProcessing(false);
       } else if (result.paymentIntent?.status === "succeeded") {
         setPaymentSuccess(true);
+        await clearCart(); // Clear the cart on successful payment
       }
     } catch (err) {
       setError("An error occurred during payment.");
