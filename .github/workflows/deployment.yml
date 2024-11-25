@@ -1,22 +1,16 @@
-# GitHub Actions Workflow for Ecom-Shop CI/CD Pipeline
-# This workflow automates the process of testing and deploying the Ecom-Shop application.
-
 name: Ecom-Shop CI/CD
 
-# Triggers for the workflow
 on:
   push:
     branches:
-      - main           # Trigger workflow on pushes to the main branch
-      - development    # Trigger workflow on pushes to the development branch
+      - main
+      - development
   pull_request:
     branches:
-      - main           # Trigger workflow on pull requests to the main branch
-      - development    # Trigger workflow on pull requests to the development branch
+      - main
+      - development
 
-# Define jobs to be executed in the workflow
 jobs:
-  # Build and Test Jobs
   build-and-test:
     runs-on: ubuntu-latest
     strategy:
@@ -26,9 +20,9 @@ jobs:
     env:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
-      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }} 
-      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}  
-      
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -38,22 +32,26 @@ jobs:
         with:
           node-version: "${{ matrix.node-version }}"
 
+      - name: Clean environment
+        run: |
+          cd isolora
+          rm -f package-lock.json
+
       - name: Install dependencies
         run: |
           cd isolora
           yarn install
 
-      - name: Run build
+      - name: Build
         run: |
           cd isolora
-          yarn build
+          yarn build || (echo "Build failed. See logs above." && exit 1)
 
       - name: Run tests
         run: |
           cd isolora
           yarn test
 
-  # Deployment Job
   deploy:
     needs: build-and-test
     runs-on: ubuntu-latest
@@ -66,8 +64,8 @@ jobs:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }} 
-      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }} 
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
 
     steps:
       - name: Checkout code
@@ -78,23 +76,22 @@ jobs:
         with:
           node-version: "${{ matrix.node-version }}"
 
-      # Step to install the latest Vercel CLI
-      - name: Install the latest Vercel CLI
-        run: yarn global add vercel@latest
+      - name: Clean environment
+        run: |
+          cd isolora
+          rm -f package-lock.json
 
       - name: Install dependencies
         run: |
           cd isolora
           yarn install
 
-      - name: Build for deployment
+      - name: Build
         run: |
           cd isolora
-          yarn build
+          yarn build || (echo "Build failed. See logs above." && exit 1)
 
       - name: Deploy to Vercel
         run: |
           cd isolora
-          vercel --prod --yes --token $VERCEL_TOKEN
-          vercel --prod --yes --token $VERCEL_TOKEN
           vercel --prod --yes --token $VERCEL_TOKEN
