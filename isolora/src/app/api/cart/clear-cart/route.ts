@@ -3,38 +3,36 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(request: Request) {
   try {
-    // Parse JSON body to extract the userId
+    // Extract and validate userId from the request body
     const { userId } = await request.json();
-    console.log("Received userId:", userId); // Log userId for debugging
-
-    // Check if userId is provided
     if (!userId) {
+      console.warn("userId missing in the request payload");
       return NextResponse.json(
         { success: false, message: "Missing userId" },
         { status: 400 }
       );
     }
 
-    // Perform DELETE query on the database
-    const result = await sql`
+    // Perform DELETE query on the cart table for the given userId
+    const deleteResult = await sql`
       DELETE FROM cart WHERE user_id = ${userId};
     `;
 
-    // Log the result for debugging
-    console.log("Cart clear result:", result);
+    // Log the result for better traceability
+    console.info("Cart emptied for userId:", userId, "Result:", deleteResult);
 
-    // Return a success response
+    // Respond with success
     return NextResponse.json({
       success: true,
       message: "Cart emptied successfully",
     });
   } catch (error) {
-    // Log the error for debugging
-    console.error("Error emptying the cart:", error);
+    // Enhanced error logging
+    console.error("Error while emptying cart for userId:", error);
 
-    // Return an error response
+    // Respond with an error message
     return NextResponse.json(
-      { success: false, message: "Database error" },
+      { success: false, message: "Failed to empty the cart" },
       { status: 500 }
     );
   }
