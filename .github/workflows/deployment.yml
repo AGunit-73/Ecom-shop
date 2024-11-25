@@ -26,7 +26,9 @@ jobs:
     env:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
-
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }} 
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}  
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -64,6 +66,8 @@ jobs:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }} 
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }} 
 
     steps:
       - name: Checkout code
@@ -91,4 +95,4 @@ jobs:
       - name: Deploy to Vercel
         run: |
           cd isolora
-          vercel --prod --yes --token $VERCEL_TOKEN  # Added --yes flag to confirm deployment
+          vercel --prod --yes --token $VERCEL_TOKEN
