@@ -26,8 +26,7 @@ jobs:
     env:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
-      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }} 
-      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}  
+        
       
     steps:
       - name: Checkout code
