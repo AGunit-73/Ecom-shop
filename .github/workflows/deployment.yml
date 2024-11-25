@@ -100,7 +100,7 @@ jobs:
       - name: Link Vercel Project # Link the Vercel project
         run: |
           cd isolora
-          vercel link --token $VERCEL_TOKEN
+          vercel link --yes --token $VERCEL_TOKEN # Use the --yes flag to skip confirmation
 
       - name: Deploy to Vercel # Deploy the application to Vercel
         run: |
