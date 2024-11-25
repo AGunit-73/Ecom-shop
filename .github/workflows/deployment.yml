@@ -94,8 +94,8 @@ jobs:
           cd isolora
           yarn build || (echo "Build failed. See logs above." && exit 1)
 
-      - name: Install Vercel CLI # Install Vercel CLI
-        run: npm install -g vercel@latest
+      - name: Install Vercel CLI # Install Vercel CLI using Yarn
+        run: yarn global add vercel
 
       - name: Link Vercel Project # Link the Vercel project
         run: |
