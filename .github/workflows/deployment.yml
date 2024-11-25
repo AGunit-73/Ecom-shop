@@ -16,7 +16,7 @@ on:
 
 # Define jobs to be executed in the workflow
 jobs:
-  # Build and Test Job
+  # Build and Test Jobs
   build-and-test:
     runs-on: ubuntu-latest
     strategy:
