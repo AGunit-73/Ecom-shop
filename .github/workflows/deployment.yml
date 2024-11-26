@@ -35,24 +35,24 @@ jobs:
         with:
           node-version: "${{ matrix.node-version }}" # Specify the Node.js version dynamically from the matrix
 
-      - name: Navigate to isolora directory # Step to change directory to isolora
+      - name: Clean environment # Step to clean any previous build artifacts
         run: |
-          cd ../isolora # Navigate up one level and into the isolora directory
+          cd isolora # Navigate to the correct directory
           rm -f package-lock.json # Remove lock files to ensure fresh dependencies
 
       - name: Install dependencies # Step to install project dependencies
         run: |
-          cd ../isolora # Navigate to the correct directory
+          cd isolora # Navigate to the correct directory
           yarn install # Use Yarn to install dependencies
 
       - name: Build # Step to build the application
         run: |
-          cd ../isolora # Navigate to the correct directory
+          cd isolora # Navigate to the correct directory
           yarn build || (echo "Build failed. See logs above." && exit 1) # Build the app and exit if it fails
 
       - name: Run tests # Step to run tests
         run: |
-          cd ../isolora # Navigate to the correct directory
+          cd isolora # Navigate to the correct directory
           yarn test # Run all tests using Yarn
 
   deploy: # Job to deploy the application
@@ -74,14 +74,19 @@ jobs:
       - name: Checkout code # Fetch the latest code from the repository
         uses: actions/checkout@v3 # Use the checkout action
 
-      - name: Navigate to isolora directory # Step to change directory to isolora
+      - name: Set up Node.js "${{ matrix.node-version }}" # Set up Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: "${{ matrix.node-version }}"
+
+      - name: Install dependencies # Install required dependencies
         run: |
-          cd ../isolora # Navigate to the correct directory
+          cd isolora # Navigate to the correct directory
           yarn install
 
       - name: Build # Build the application for deployment
         run: |
-          cd ../isolora # Navigate to the correct directory
+          cd isolora # Navigate to the correct directory
           yarn build || (echo "Build failed. See logs above." && exit 1)
 
       - name: Install Vercel CLI # Install Vercel CLI using Yarn
@@ -89,10 +94,10 @@ jobs:
 
       - name: Link Vercel Project # Link the correct Vercel project
         run: |
-          cd ../isolora # Navigate to the correct directory
+          cd isolora # Navigate to the correct directory
           vercel link --yes --token $VERCEL_TOKEN --project ecom-shop-9ty2 # Explicitly link the correct project
 
       - name: Deploy to Vercel # Deploy the application to Vercel
         run: |
-          cd ../isolora # Navigate to the correct directory
+          cd isolora # Navigate to the correct directory
           vercel --prod --yes --token $VERCEL_TOKEN # Deploy using the Vercel CLI with the provided token
