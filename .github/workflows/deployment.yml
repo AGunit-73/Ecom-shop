@@ -97,10 +97,10 @@ jobs:
       - name: Install Vercel CLI # Install Vercel CLI using Yarn
         run: yarn global add vercel
 
-      - name: Link Vercel Project # Link the Vercel project
+      - name: Link Vercel Project # Link the correct Vercel project
         run: |
           cd isolora
-          vercel link --yes --token $VERCEL_TOKEN # Use the --yes flag to skip confirmation
+          vercel link --yes --token $VERCEL_TOKEN --project ecom-shop-9ty2 # Explicitly link the correct project
 
       - name: Deploy to Vercel # Deploy the application to Vercel
         run: |
