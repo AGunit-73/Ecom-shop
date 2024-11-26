@@ -37,7 +37,6 @@ jobs:
 
       - name: Clean environment # Step to clean any previous build artifacts
         run: |
-          cd isolora # Navigate to the project directory
           rm -f package-lock.json # Remove lock files to ensure fresh dependencies
 
       - name: Install dependencies # Step to install project dependencies
@@ -78,11 +77,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "${{ matrix.node-version }}"
-
-      - name: Clean environment # Clean build artifacts
-        run: |
-          cd isolora
-          rm -f package-lock.json
 
       - name: Install dependencies # Install required dependencies
         run: |
