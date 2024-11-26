@@ -4,100 +4,97 @@ name: Ecom-Shop CI/CD
 # Specify the events that will trigger the workflow
 on:
   push: # Trigger the workflow on push events
-    branches: # Specify the branches for push events
-      - main # The main branch (production-ready)
-      - development # The development branch (for staging/testing)
+    branches:
+      - main # Trigger only on pushes to the main branch
   pull_request: # Trigger the workflow on pull request events
-    branches: # Specify the branches for pull request events
+    branches:
       - main # Main branch pull requests
-      - development # Development branch pull requests
 
 # Define jobs to run in the workflow
 jobs:
   build-and-test: # Job to build and test the application
     runs-on: ubuntu-latest # Use the latest Ubuntu runner for the job
-    strategy: # Define a build strategy
-      matrix: # Use a matrix to test across multiple configurations
+    strategy:
+      matrix:
         node-version: [18.20.4] # Specify the Node.js version to use
 
-    env: # Define environment variables for the job
-      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }} # Secure key for encryption
-      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }} # Initialization vector for encryption
-      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }} # Stripe API secret key
-      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }} # Public Stripe API key for the frontend
+    env:
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
 
-    steps: # Define the steps for this job
-      - name: Checkout code # Step to fetch the latest code from the repository
-        uses: actions/checkout@v3 # Use the official GitHub action for checkout
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up Node.js "${{ matrix.node-version }}" # Step to set up Node.js
-        uses: actions/setup-node@v3 # Use the official GitHub action for Node.js
-        with:
-          node-version: "${{ matrix.node-version }}" # Specify the Node.js version dynamically from the matrix
-
-      - name: Clean environment # Step to clean any previous build artifacts
-        run: |
-          cd isolora # Navigate to the correct directory
-          rm -f package-lock.json # Remove lock files to ensure fresh dependencies
-
-      - name: Install dependencies # Step to install project dependencies
-        run: |
-          cd isolora # Navigate to the correct directory
-          yarn install # Use Yarn to install dependencies
-
-      - name: Build # Step to build the application
-        run: |
-          cd isolora # Navigate to the correct directory
-          yarn build || (echo "Build failed. See logs above." && exit 1) # Build the app and exit if it fails
-
-      - name: Run tests # Step to run tests
-        run: |
-          cd isolora # Navigate to the correct directory
-          yarn test # Run all tests using Yarn
-
-  deploy: # Job to deploy the application
-    needs: build-and-test # Ensure this job runs only if build-and-test succeeds
-    runs-on: ubuntu-latest # Use the latest Ubuntu runner
-    if: github.ref == 'refs/heads/main' # Conditional to run only when on the main branch
-    strategy: # Define a strategy for deployment
-      matrix:
-        node-version: [18.20.4] # Use the same Node.js version as the build job
-
-    env: # Environment variables for deployment
-      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }} # Encryption key
-      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }} # Encryption IV
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }} # Vercel token for deployment
-      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }} # Stripe API secret key
-      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }} # Public Stripe key
-
-    steps: # Define the steps for this job
-      - name: Checkout code # Fetch the latest code from the repository
-        uses: actions/checkout@v3 # Use the checkout action
-
-      - name: Set up Node.js "${{ matrix.node-version }}" # Set up Node.js environment
+      - name: Set up Node.js "${{ matrix.node-version }}"
         uses: actions/setup-node@v3
         with:
           node-version: "${{ matrix.node-version }}"
 
-      - name: Install dependencies # Install required dependencies
+      - name: Clean environment
         run: |
-          cd isolora # Navigate to the correct directory
+          cd isolora
+          rm -f package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd isolora
           yarn install
 
-      - name: Build # Build the application for deployment
+      - name: Build
         run: |
-          cd isolora # Navigate to the correct directory
+          cd isolora
           yarn build || (echo "Build failed. See logs above." && exit 1)
 
-      - name: Install Vercel CLI # Install Vercel CLI using Yarn
+      - name: Run tests
+        run: |
+          cd isolora
+          yarn test
+
+  deploy: # Job to deploy the application
+    needs: build-and-test # Ensure this job runs only if build-and-test succeeds
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+    strategy:
+      matrix:
+        node-version: [18.20.4] # Use the same Node.js version as the build job
+
+    env:
+      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+      ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js "${{ matrix.node-version }}"
+        uses: actions/setup-node@v3
+        with:
+          node-version: "${{ matrix.node-version }}"
+
+      - name: Install dependencies
+        run: |
+          cd isolora
+          yarn install
+
+      - name: Build
+        run: |
+          cd isolora
+          yarn build || (echo "Build failed. See logs above." && exit 1)
+
+      - name: Install Vercel CLI
         run: yarn global add vercel
 
-      - name: Link Vercel Project # Link the correct Vercel project
+      - name: Link Vercel Project
         run: |
-          cd isolora # Navigate to the correct directory
-          vercel link --yes --token $VERCEL_TOKEN --project ecom-shop-9ty2 # Explicitly link the correct project
+          cd isolora
+          vercel link --yes --token $VERCEL_TOKEN --project ecom-shop-9ty2
 
-      - name: Deploy to Vercel # Deploy the application to Vercel
+      - name: Deploy to Vercel
         run: |
-          cd isolora # Navigate to the correct directory
-          vercel --prod --yes --token $VERCEL_TOKEN # Deploy using the Vercel CLI with the provided token
+          cd isolora
+          vercel --prod --yes --token $VERCEL_TOKEN
