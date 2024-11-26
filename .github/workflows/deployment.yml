@@ -1,22 +1,25 @@
-# Define the name of the workflow
+# GitHub Actions Workflow for Ecom-Shop CI/CD Pipeline
 name: Ecom-Shop CI/CD
 
-# Specify the events that will trigger the workflow
+# Triggers for the workflow
 on:
-  push: # Trigger the workflow on push events
+  push:
     branches:
-      - main # Trigger only on pushes to the main branch
-  pull_request: # Trigger the workflow on pull request events
+      - main           # Trigger workflow on pushes to the main branch
+      - development    # Trigger workflow on pushes to the development branch
+  pull_request:
     branches:
-      - main # Main branch pull requests
+      - main           # Trigger workflow on pull requests to the main branch
+      - development    # Trigger workflow on pull requests to the development branch
 
-# Define jobs to run in the workflow
+# Define jobs to be executed in the workflow
 jobs:
-  build-and-test: # Job to build and test the application
-    runs-on: ubuntu-latest # Use the latest Ubuntu runner for the job
+  # Build and Test Job
+  build-and-test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.20.4] # Specify the Node.js version to use
+        node-version: [18.20.4]
 
     env:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
@@ -33,39 +36,36 @@ jobs:
         with:
           node-version: "${{ matrix.node-version }}"
 
-      - name: Clean environment
-        run: |
-          cd isolora
-          rm -f package-lock.json
-
       - name: Install dependencies
         run: |
           cd isolora
           yarn install
 
-      - name: Build
+      - name: Run build
         run: |
           cd isolora
-          yarn build || (echo "Build failed. See logs above." && exit 1)
+          yarn build
 
       - name: Run tests
         run: |
           cd isolora
           yarn test
 
-  deploy: # Job to deploy the application
-    needs: build-and-test # Ensure this job runs only if build-and-test succeeds
-    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+  # Deployment Job
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     strategy:
       matrix:
-        node-version: [18.20.4] # Use the same Node.js version as the build job
+        node-version: [18.20.4]
 
     env:
       ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
       ENCRYPTION_IV: ${{ secrets.ENCRYPTION_IV }}
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -81,18 +81,13 @@ jobs:
           cd isolora
           yarn install
 
-      - name: Build
+      - name: Build for deployment
         run: |
           cd isolora
-          yarn build || (echo "Build failed. See logs above." && exit 1)
+          yarn build
 
       - name: Install Vercel CLI
-        run: yarn global add vercel
-
-      - name: Link Vercel Project
-        run: |
-          cd isolora
-          vercel link --yes --token $VERCEL_TOKEN --project ecom-shop-9ty2
+        run: yarn global add vercel@latest
 
       - name: Deploy to Vercel
         run: |
