@@ -37,6 +37,7 @@ jobs:
 
       - name: Clean environment # Step to clean any previous build artifacts
         run: |
+          cd isolora # Navigate to the correct directory
           rm -f package-lock.json # Remove lock files to ensure fresh dependencies
 
       - name: Install dependencies # Step to install project dependencies
@@ -93,10 +94,10 @@ jobs:
 
       - name: Link Vercel Project # Link the correct Vercel project
         run: |
-          cd isolora
+          cd isolora # Navigate to the correct directory
           vercel link --yes --token $VERCEL_TOKEN --project ecom-shop-9ty2 # Explicitly link the correct project
 
       - name: Deploy to Vercel # Deploy the application to Vercel
         run: |
-          cd isolora
+          cd isolora # Navigate to the correct directory
           vercel --prod --yes --token $VERCEL_TOKEN # Deploy using the Vercel CLI with the provided token
