@@ -14,7 +14,7 @@ interface CartItem {
   image_url: string | null;
   estimatedDelivery: string;
 }
-
+// Define the structure of the cart item
 const CartPage = () => {
   const { user } = useUser();
   const { fetchCartCount } = useCart();
@@ -41,7 +41,7 @@ const CartPage = () => {
       const response = await fetch(`/api/cart/get-items?userId=${user.id}`);
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success) { 
         const updatedCartItems = data.cartItems.map((item: CartItem) => ({
           ...item,
           estimatedDelivery: new Date(
