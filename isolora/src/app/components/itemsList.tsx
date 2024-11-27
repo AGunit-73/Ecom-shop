@@ -112,31 +112,34 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
   };
 
   // Delete item
-  const handleDelete = async (itemId: number) => {
+  const handleDelete = async (itemId: number, imageUrl: string | null) => {
     if (!user || user.role !== "vendor") {
       alert("You do not have permission to delete this item.");
       return;
     }
-
+  
     if (!confirm("Are you sure you want to delete this item?")) return;
-
+  
     try {
       const response = await fetch("/api/product/delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemid: itemId }),
+        body: JSON.stringify({ itemid: itemId, imageUrl }),
       });
-
+  
       if (response.ok) {
         setItems((prev) => prev.filter((item) => item.itemid !== itemId));
         alert("Item deleted successfully.");
       } else {
-        alert("Failed to delete item.");
+        const errorData = await response.json();
+        alert(`Failed to delete item: ${errorData.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error deleting item:", error);
+      alert("An error occurred while deleting the item. Please try again.");
     }
   };
+  
 
   // Update quantity
   const handleUpdateQuantity = async (itemId: number, newQuantity: number) => {
@@ -144,32 +147,38 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
       alert("You do not have permission to update this item.");
       return;
     }
-
+  
     if (newQuantity < 0) {
       alert("Quantity cannot be negative.");
       return;
     }
-
+  
     try {
       const response = await fetch("/api/product/update-quantity", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itemId, quantity: newQuantity }),
+        body: JSON.stringify({ productId: itemId, quantity: newQuantity }),
       });
-
+  
       if (response.ok) {
         setItems((prev) =>
-          prev.map((item) => (item.itemid === itemId ? { ...item, quantity: newQuantity } : item))
+          prev.map((item) =>
+            item.itemid === itemId ? { ...item, quantity: newQuantity } : item
+          )
         );
         alert("Quantity updated successfully.");
       } else {
-        alert("Failed to update quantity.");
+        const errorData = await response.json();
+        alert(`Failed to update quantity: ${errorData.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Error updating quantity:", error);
+      alert("An error occurred while updating the quantity. Please try again.");
     }
   };
-
+  
+  
+  
   // Filter items based on category
   useEffect(() => {
     setFilteredItems(
@@ -252,35 +261,42 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
             )}
 
             {/* Vendor Options */}
-            {user?.role === "vendor" && user.id === item.user_id && (
-              <div className="flex items-center space-x-2 mt-2">
-                <input
-                  type="number"
-                  className="border border-gray-300 rounded px-2 py-1 w-12 text-center text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  value={quantityUpdates[item.itemid] ?? item.quantity}
-                  onChange={(e) =>
-                    setQuantityUpdates((prev) => ({
-                      ...prev,
-                      [item.itemid]: parseInt(e.target.value),
-                    }))
-                  }
-                />
-                <button
-                  onClick={() =>
-                    handleUpdateQuantity(item.itemid, quantityUpdates[item.itemid] ?? item.quantity)
-                  }
-                  className="px-2 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-green-400"
-                >
-                  Update
-                </button>
-                <button
-                  onClick={() => handleDelete(item.itemid)}
-                  className="px-2 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-red-400"
-                >
-                  Delete
-                </button>
-              </div>
-            )}
+            {/* Vendor Options */}
+{user?.role === "vendor" && user.id === item.user_id && (
+  <div className="flex items-center space-x-2 mt-2">
+    {/* Quantity Input */}
+    <input
+      type="number"
+      className="border border-gray-300 rounded px-2 py-1 w-12 text-center text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+      value={quantityUpdates[item.itemid] ?? item.quantity}
+      onChange={(e) =>
+        setQuantityUpdates((prev) => ({
+          ...prev,
+          [item.itemid]: parseInt(e.target.value) || 0, // Prevent NaN
+        }))
+      }
+    />
+
+    {/* Update Button */}
+    <button
+      onClick={() =>
+        handleUpdateQuantity(item.itemid, quantityUpdates[item.itemid] ?? item.quantity)
+      }
+      className="px-2 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-green-400"
+    >
+      Update
+    </button>
+
+    {/* Delete Button */}
+    <button
+      onClick={() => handleDelete(item.itemid, item.image_url)} // Pass image_url to delete
+      className="px-2 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-red-400"
+    >
+      Delete
+    </button>
+  </div>
+)}
+
           </div>
         );
       })}
