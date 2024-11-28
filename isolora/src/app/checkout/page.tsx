@@ -12,6 +12,8 @@ interface CartItem {
   quantity: number;
   price: number;
   image_url: string | null;
+  product_id: string | number;
+  vendor_id: string | number;
 }
 
 const CheckoutPage = () => {
@@ -22,7 +24,13 @@ const CheckoutPage = () => {
   const [totals, setTotals] = useState({ subtotal: 0, salesTax: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [shippingAddress, setShippingAddress] = useState("");
+  const [shippingAddress, setShippingAddress] = useState({
+    addressLine1: "",
+    city: "",
+    state: "",
+    country: "",
+    zipCode: "",
+  });
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
 
@@ -61,7 +69,7 @@ const CheckoutPage = () => {
           setError(data.message || "Failed to fetch cart data.");
         }
       } catch (fetchError) {
-        console.error("Error fetching cart data:", fetchError); // Log the error
+        console.error("Error fetching cart data:", fetchError);
         setError("An error occurred while fetching cart data.");
       } finally {
         setLoading(false);
@@ -73,21 +81,37 @@ const CheckoutPage = () => {
 
   // Handle order confirmation
   const handleOrderConfirmation = async () => {
-    if (!shippingAddress.trim()) {
-      alert("Please enter your shipping address.");
+    const { addressLine1, city, state, country, zipCode } = shippingAddress;
+
+    // Validate shipping address
+    if (!addressLine1 || !city || !state || !country || !zipCode) {
+      alert("Please fill in all shipping address fields.");
       return;
     }
 
-    if (!user?.id) {
-      alert("User ID is missing. Please log in to continue.");
+    if (!user?.id || !user?.name || !user?.email) {
+      alert("User data is incomplete. Please log in again.");
       return;
     }
 
     setConfirmLoading(true);
     try {
-      const response = await fetch(`/api/cart/clear-cart?userId=${user.id}`, {
-        method: "DELETE",
+      const orderDetails = cartItems.map((item) => ({
+        customer_id: user.id,
+        customer_name: user.name, // Include customer name
+        customer_email: user.email, // Include customer email
+        vendor_id: item.vendor_id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        shipping_address: `${addressLine1}, ${city}, ${state}, ${country}, ${zipCode}`,
+      }));
+
+      console.log("Order Payload:", orderDetails); // Debugging payload
+
+      const response = await fetch(`/api/orders/place`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orders: orderDetails }),
       });
 
       const data = await response.json();
@@ -96,10 +120,11 @@ const CheckoutPage = () => {
         clearCart();
         setOrderConfirmed(true);
       } else {
+        console.error("Order Placement Error:", data.message);
         alert(data.message || "An error occurred. Please try again.");
       }
     } catch (confirmationError) {
-      console.error("Error during order confirmation:", confirmationError); // Log the error
+      console.error("Error during order confirmation:", confirmationError);
       alert("An error occurred. Please try again.");
     } finally {
       setConfirmLoading(false);
@@ -120,9 +145,9 @@ const CheckoutPage = () => {
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-pink-100 to-blue-100">
         <h2 className="text-xl font-bold text-green-600">Order Confirmed!</h2>
         <p className="text-gray-700 mt-4">Thank you for shopping with us! Your order is being processed.</p>
-        <Link href="/">
+        <Link href="/pages/dashboard">
           <button className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-            Continue Shopping
+            Go to Dashboard
           </button>
         </Link>
       </div>
@@ -146,7 +171,6 @@ const CheckoutPage = () => {
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-4xl font-bold mb-6 text-center text-blue-600">Checkout</h1>
 
-      {/* Order Summary */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
         <table className="w-full border border-gray-200 text-left">
@@ -160,8 +184,8 @@ const CheckoutPage = () => {
             </tr>
           </thead>
           <tbody>
-            {cartItems.map((item, index) => (
-              <tr key={item.cartid || `item-${index}`} className="border-b border-gray-200">
+            {cartItems.map((item) => (
+              <tr key={item.cartid} className="border-b border-gray-200">
                 <td className="p-3">
                   {item.image_url && (
                     <Image
@@ -183,35 +207,49 @@ const CheckoutPage = () => {
         </table>
       </div>
 
-      {/* Totals */}
-      <div className="mb-6">
-        <div className="flex justify-between text-gray-700">
-          <p>Subtotal:</p>
-          <p>${totals.subtotal.toFixed(2)}</p>
-        </div>
-        <div className="flex justify-between text-gray-700">
-          <p>Sales Tax (10%):</p>
-          <p>${totals.salesTax.toFixed(2)}</p>
-        </div>
-        <div className="flex justify-between font-bold text-gray-900 mt-4">
-          <p>Total:</p>
-          <p>${totals.total.toFixed(2)}</p>
-        </div>
-      </div>
-
-      {/* Shipping Address */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
-        <textarea
-          value={shippingAddress}
-          onChange={(e) => setShippingAddress(e.target.value)}
-          placeholder="Enter your shipping address"
-          rows={4}
-          className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-400"
-        />
+        <div className="space-y-4">
+          <input
+            type="text"
+            placeholder="Address Line 1"
+            value={shippingAddress.addressLine1}
+            onChange={(e) =>
+              setShippingAddress({ ...shippingAddress, addressLine1: e.target.value })
+            }
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-400"
+          />
+          <input
+            type="text"
+            placeholder="City"
+            value={shippingAddress.city}
+            onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-400"
+          />
+          <input
+            type="text"
+            placeholder="State"
+            value={shippingAddress.state}
+            onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-400"
+          />
+          <input
+            type="text"
+            placeholder="Country"
+            value={shippingAddress.country}
+            onChange={(e) => setShippingAddress({ ...shippingAddress, country: e.target.value })}
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-400"
+          />
+          <input
+            type="text"
+            placeholder="Zip Code"
+            value={shippingAddress.zipCode}
+            onChange={(e) => setShippingAddress({ ...shippingAddress, zipCode: e.target.value })}
+            className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
       </div>
 
-      {/* Confirm Order Button */}
       <button
         onClick={handleOrderConfirmation}
         className={`w-full py-2 px-4 text-white rounded ${

@@ -1,4 +1,3 @@
-// /api/cart/get-items/route.ts
 import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
 
@@ -12,7 +11,12 @@ export async function GET(request: Request) {
 
   try {
     const cartItems = await sql`
-      SELECT cart.*, items.name, items.price, items.image_url 
+      SELECT 
+        cart.*, 
+        items.name, 
+        items.price, 
+        items.image_url, 
+        items.user_id AS vendor_id -- Fetch vendor_id from items table
       FROM cart 
       JOIN items ON cart.product_id = items.itemid 
       WHERE cart.user_id = ${userId};
