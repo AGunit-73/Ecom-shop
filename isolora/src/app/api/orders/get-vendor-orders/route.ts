@@ -35,25 +35,25 @@ export async function GET(request: Request) {
 
     // Query to fetch orders received by the vendor
     const result = await sql`
-    SELECT 
-      o.*, 
-      i.name AS product_name, 
-      i.image_url, 
-      i.price, 
-      o.customer_name, 
-      o.customer_email
-    FROM 
-      orders o
-    INNER JOIN 
-      items i 
-    ON 
-      o.product_id = i.itemid
-    WHERE 
-      o.vendor_id = ${vendorId}
-    ORDER BY 
-      o.created_at DESC;
-  `;
-  
+      SELECT 
+        o.*, 
+        i.name AS product_name, 
+        i.image_url, 
+        i.price, 
+        o.customer_name, 
+        o.customer_email
+      FROM 
+        orders o
+      INNER JOIN 
+        items i 
+      ON 
+        o.product_id = i.itemid
+      WHERE 
+        o.vendor_id = ${vendorId}
+      ORDER BY 
+        o.created_at DESC;
+    `;
+
     // Check if orders exist
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -62,10 +62,18 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ success: true, orders: result.rows });
-  } catch (error: any) {
-    console.error("Error fetching vendor orders:", error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error fetching vendor orders:", error.message);
+      return NextResponse.json(
+        { success: false, message: "Failed to fetch vendor orders" },
+        { status: 500 }
+      );
+    }
+
+    console.error("Unexpected error:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to fetch vendor orders" },
+      { success: false, message: "An unexpected error occurred" },
       { status: 500 }
     );
   }

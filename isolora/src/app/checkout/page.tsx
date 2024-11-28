@@ -98,15 +98,13 @@ const CheckoutPage = () => {
     try {
       const orderDetails = cartItems.map((item) => ({
         customer_id: user.id,
-        customer_name: user.name, // Include customer name
-        customer_email: user.email, // Include customer email
+        customer_name: user.name,
+        customer_email: user.email,
         vendor_id: item.vendor_id,
         product_id: item.product_id,
         quantity: item.quantity,
         shipping_address: `${addressLine1}, ${city}, ${state}, ${country}, ${zipCode}`,
       }));
-
-      console.log("Order Payload:", orderDetails); // Debugging payload
 
       const response = await fetch(`/api/orders/place`, {
         method: "POST",
@@ -205,6 +203,21 @@ const CheckoutPage = () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-4">Totals</h2>
+        <div className="p-4 border rounded-md bg-gray-50">
+          <p className="text-gray-700">
+            Subtotal: <span className="font-bold">${totals.subtotal.toFixed(2)}</span>
+          </p>
+          <p className="text-gray-700">
+            Sales Tax (10%): <span className="font-bold">${totals.salesTax.toFixed(2)}</span>
+          </p>
+          <p className="text-gray-700">
+            Total: <span className="font-bold">${totals.total.toFixed(2)}</span>
+          </p>
+        </div>
       </div>
 
       <div className="mb-6">

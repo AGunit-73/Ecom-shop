@@ -44,10 +44,18 @@ export async function POST(request: Request) {
 
     // Return success response
     return NextResponse.json({ success: true, orders: result.rows });
-  } catch (error: any) {
-    console.error("Error placing orders:", error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error placing orders:", error.message);
+      return NextResponse.json(
+        { success: false, message: "Failed to place orders. Please try again later." },
+        { status: 500 }
+      );
+    }
+
+    console.error("Unexpected error:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to place orders. Please try again later." },
+      { success: false, message: "An unexpected error occurred while placing orders." },
       { status: 500 }
     );
   }

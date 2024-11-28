@@ -46,10 +46,18 @@ export async function PUT(request: Request) {
       message: "Order status updated",
       order: updateResult.rows[0],
     });
-  } catch (error: any) {
-    console.error("Error updating order status:", error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error updating order status:", error.message);
+      return NextResponse.json(
+        { success: false, message: "Failed to update order status" },
+        { status: 500 }
+      );
+    }
+
+    console.error("Unexpected error:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to update order status" },
+      { success: false, message: "An unexpected error occurred while updating order status" },
       { status: 500 }
     );
   }

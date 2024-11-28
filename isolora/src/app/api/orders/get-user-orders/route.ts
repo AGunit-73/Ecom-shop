@@ -31,10 +31,18 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ success: true, orders: result.rows });
-  } catch (error: any) {
-    console.error("Error fetching user orders:", error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error fetching user orders:", error.message);
+      return NextResponse.json(
+        { success: false, message: "Failed to fetch user orders" },
+        { status: 500 }
+      );
+    }
+
+    console.error("Unexpected error:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to fetch user orders" },
+      { success: false, message: "An unexpected error occurred" },
       { status: 500 }
     );
   }
