@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import Footer from "../src/app/footer/page";
+import Footer from "../footer/page";
 import "@testing-library/jest-dom";
 
 describe("Footer Component", () => {
@@ -18,9 +18,9 @@ describe("Footer Component", () => {
   it("checks the navigation links' href attributes", () => {
     render(<Footer />);
 
-    const homeLink = screen.getByText(/Home/i).closest("a");
-    const aboutLink = screen.getByText(/About Us/i).closest("a");
-    const contactLink = screen.getByText(/Contact/i).closest("a");
+    const homeLink = screen.getByRole("link", { name: /Home/i });
+    const aboutLink = screen.getByRole("link", { name: /About Us/i });
+    const contactLink = screen.getByRole("link", { name: /Contact/i });
 
     expect(homeLink).toHaveAttribute("href", "/");
     expect(aboutLink).toHaveAttribute("href", "/about");
@@ -38,10 +38,11 @@ describe("Footer Component", () => {
   });
 
   it("renders all navigation icons", () => {
-    render(<Footer />);
+    const { container } = render(<Footer />);
 
-    // Check for SVG elements by using `svg` tag names
-    const svgIcons = document.querySelectorAll("svg");
+    // Use getElementsByTagName to select all SVG elements inside the rendered container
+    const svgIcons = container.getElementsByTagName("svg");
+
     expect(svgIcons).toHaveLength(3); // Expect 3 icons: Home, About Us, and Contact
   });
 });

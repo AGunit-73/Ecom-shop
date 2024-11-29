@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Home from '../src/app/page';
+import Home from '../page';
 import { useRouter } from 'next/router';
 
 // Mock `useRouter` to prevent routing errors
@@ -9,13 +9,13 @@ jest.mock('next/router', () => ({
 }));
 
 // Mock `Header` and `ItemList` components with display names
-jest.mock('../src/app/components/header', () => {
+jest.mock('@/app/components/header', () => {
   const Header = () => <div data-testid="header-component">Header</div>;
   Header.displayName = 'Header'; // Add display name
   return Header;
 });
 
-jest.mock('../src/app/components/itemsList', () => {
+jest.mock('@/app/components/itemsList', () => {
   const ItemList = ({ selectedCategory }: { selectedCategory: string }) => (
     <div data-testid="item-list-component">{`ItemList - Category: ${selectedCategory}`}</div>
   );

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import ContactPage from "../src/app/contact/page";
+import ContactPage from "../contact/page";
 import "@testing-library/jest-dom";
 
 describe("ContactPage", () => {
