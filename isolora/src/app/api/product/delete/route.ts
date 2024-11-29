@@ -8,12 +8,15 @@ interface DeleteRequestBody {
 }
 
 export async function DELETE(request: Request) {
-  const { itemid, imageUrl }: DeleteRequestBody = await request.json();
+  try {
+    const { itemid, imageUrl }: DeleteRequestBody = await request.json();
 
-  // Check for required parameters
-  if (!itemid || !imageUrl) {
-    return NextResponse.json({ error: "Item ID and image URL are required" }, { status: 400 });
-  }
+    if (!itemid || !imageUrl) {
+      return NextResponse.json(
+        { error: "Item ID and image URL are required" },
+        { status: 400 }
+      );
+    }
 
   try {
     // Step 1: Delete the image from Vercel Blob storage
@@ -28,12 +31,21 @@ export async function DELETE(request: Request) {
     `;
 
     if (result.rowCount === 0) {
-      return NextResponse.json({ success: false, message: "Item not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "Item not found" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ success: true, message: "Item deleted successfully" });
+    return NextResponse.json({
+      success: true,
+      message: "Item deleted successfully",
+    });
   } catch (error) {
     console.error("Error deleting item:", error);
-    return NextResponse.json({ success: false, message: "Deletion failed" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Deletion failed" },
+      { status: 500 }
+    );
   }
 }

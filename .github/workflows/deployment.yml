@@ -4,7 +4,8 @@
 
 name: Ecom-Shop CI/CD
 
-# Triggers for the workflow
+# Triggers for the workflow 
+#  of the management
 on:
   push:
     branches:
