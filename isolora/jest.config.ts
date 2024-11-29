@@ -64,11 +64,14 @@ const config: Config = {
   // The paths to modules that run some code to configure or set up the testing framework before each test
   setupFiles: ['whatwg-fetch'], // Fetch API polyfill
 
+  // Configure setup after environment initialization
+  setupFilesAfterEnv: ['<rootDir>/src/app/__mock__/setupTests.ts'], // Path to your mock setup file
+
   // Adds a location field to test results
   // testLocationInResults: false,
 
   // Automatically reset the mock state before every test
-// Configure setup after environment initialization
+  // resetMocks: false,
 };
 
 export default createJestConfig(config);

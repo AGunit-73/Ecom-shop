@@ -1,7 +1,6 @@
-// src/app/api/product/delete-item/route.ts
 import { sql } from "@vercel/postgres";
-import { NextResponse } from "next/server";
 import { del } from "@vercel/blob";
+import { NextResponse } from "next/server";
 
 interface DeleteRequestBody {
   itemid: number;
@@ -19,11 +18,11 @@ export async function DELETE(request: Request) {
       );
     }
 
-    console.log("Deleting item:", { itemid, imageUrl });
-
-    const imagePath = new URL(imageUrl).pathname;
+    // Step 1: Delete the image from Vercel Blob storage
+    const imagePath = new URL(imageUrl).pathname; // Extract path from URL
     await del(imagePath);
 
+    // Step 2: Delete the item from the database
     const result = await sql`
       DELETE FROM items
       WHERE itemid = ${itemid}

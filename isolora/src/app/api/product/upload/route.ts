@@ -1,32 +1,30 @@
-// src/app/api/product/upload/route.ts
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
-// Define the BlobResult interface
-interface BlobResult {
-  url: string;
-}
-
 export async function POST(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const filename = searchParams.get("filename");
-
-  if (!filename) {
-    return NextResponse.json({ error: "Filename is required" }, { status: 400 });
-  }
-
-  if (!request.body) {
-    return NextResponse.json({ error: "File data is missing" }, { status: 400 });
-  }
-
   try {
-    const blob: BlobResult = await put(filename, request.body, {
-      access: "public",
-    });
+    // Extract filename from the URL query
+    const url = new URL(request.url);
+    const filename = url.searchParams.get("filename");
 
-    return NextResponse.json(blob);
+    // Validate filename
+    if (!filename) {
+      return NextResponse.json({ error: "Filename is required" }, { status: 400 });
+    }
+
+    // Validate file data
+    const fileData = await request.text();
+    if (!fileData) {
+      return NextResponse.json({ error: "File data is missing" }, { status: 400 });
+    }
+
+    // Upload the file using Vercel Blob
+    const result = await put(filename, fileData, { access: "public" });
+
+    // Return the file URL
+    return NextResponse.json({ url: result.url });
   } catch (error) {
-    console.error("Failed to upload blob:", error);
-    return NextResponse.json({ error: "Blob upload failed" }, { status: 500 });
+    console.error("Error uploading file:", error);
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }

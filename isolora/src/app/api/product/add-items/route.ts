@@ -1,20 +1,26 @@
-
 import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
 
 interface Item {
-  name: string;
-  category: string;
-  description: string;
-  price: number;
-  quantity: number;
-  imageUrl: string;
-  user_id: number;
+  name?: string;
+  category?: string;
+  description?: string;
+  price?: number;
+  quantity?: number;
+  imageUrl?: string;
+  user_id?: number;
 }
 
 export async function POST(request: Request) {
   const { name, category, description, price, quantity, imageUrl, user_id } = (await request.json()) as Item;
-  console.log(name, category, description, price, quantity, imageUrl, user_id);
+
+  // Validate required fields
+  if (!name || !category || !description || !price || !quantity || !imageUrl || !user_id) {
+    return NextResponse.json(
+      { success: false, message: "Missing required fields" },
+      { status: 400 }
+    );
+  }
 
   try {
     const result = await sql`
