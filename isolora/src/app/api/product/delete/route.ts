@@ -18,7 +18,6 @@ export async function DELETE(request: Request) {
       );
     }
 
-  try {
     // Step 1: Delete the image from Vercel Blob storage
     const imagePath = new URL(imageUrl).pathname; // Extract path from URL
     await del(imagePath);
