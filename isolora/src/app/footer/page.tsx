@@ -9,17 +9,17 @@ const Footer = () => {
       {/* Navigation Icons */}
       <div className="flex justify-around items-center pb-2 border-b border-gray-700">
         <Link href="/" className="flex flex-col items-center text-white hover:text-blue-400 transition">
-          <HomeIcon className="h-5 w-5 mb-1" />
+          <HomeIcon role="img" className="h-5 w-5 mb-1" />
           <span className="text-xs font-medium">Home</span>
         </Link>
 
         <Link href="/about" className="flex flex-col items-center text-white hover:text-blue-400 transition">
-          <InformationCircleIcon className="h-5 w-5 mb-1" />
+          <InformationCircleIcon role="img" className="h-5 w-5 mb-1" />
           <span className="text-xs font-medium">About Us</span>
         </Link>
 
         <Link href="/contact" className="flex flex-col items-center text-white hover:text-blue-400 transition">
-          <PhoneIcon className="h-5 w-5 mb-1" />
+          <PhoneIcon role="img" className="h-5 w-5 mb-1" />
           <span className="text-xs font-medium">Contact</span>
         </Link>
       </div>
