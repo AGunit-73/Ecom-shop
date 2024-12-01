@@ -12,6 +12,18 @@ import {
   FiMessageSquare,
 } from "react-icons/fi";
 
+interface Order {
+  id: number;
+  product_id: number;
+  product_name: string;
+  quantity: number;
+  customer_name?: string; // Ensure optional or required based on API
+  customer_email?: string; // Ensure optional or required based on API
+
+  shipping_address?: string;
+  order_status: string;
+}
+
 interface WishlistItem {
   product_id: number;
   name: string;
@@ -23,31 +35,53 @@ const Dashboard = () => {
   const { user } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("profile");
+  const [ordersPlaced, setOrdersPlaced] = useState<Order[]>([]);
+  const [ordersReceived, setOrdersReceived] = useState<Order[]>([]);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Fetch wishlist items
+  // Fetch Orders and Wishlist Data
   useEffect(() => {
-    const fetchWishlist = async () => {
-      if (activeTab === "wishlist" && user) {
-        setLoading(true);
-        try {
-          const response = await fetch(`/api/wishlist/get-items?userId=${user.id}`);
-          const data = await response.json();
-          if (data.success) {
-            setWishlistItems(data.wishlist);
-          } else {
-            console.error("Failed to fetch wishlist:", data.message);
-          }
-        } catch (error) {
-          console.error("Error fetching wishlist:", error);
-        } finally {
-          setLoading(false);
+    const fetchData = async () => {
+      if (!user) return;
+
+      setLoading(true);
+      try {
+        switch (activeTab) {
+          case "orders":
+            // Fetch Orders Placed
+            const placedResponse = await fetch(
+              `/api/orders/get-user-orders?customerId=${user.id}`
+            );
+            const placedData = await placedResponse.json();
+            if (placedData.success) setOrdersPlaced(placedData.orders);
+
+            // Fetch Orders Received
+            const receivedResponse = await fetch(
+              `/api/orders/get-vendor-orders?vendorId=${user.id}`
+            );
+            const receivedData = await receivedResponse.json();
+            if (receivedData.success) setOrdersReceived(receivedData.orders);
+            break;
+          case "wishlist":
+            // Fetch Wishlist Items
+            const wishlistResponse = await fetch(
+              `/api/wishlist/get-items?userId=${user.id}`
+            );
+            const wishlistData = await wishlistResponse.json();
+            if (wishlistData.success) setWishlistItems(wishlistData.wishlist);
+            break;
+          default:
+            break;
         }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchWishlist();
+    fetchData();
   }, [activeTab, user]);
 
   const getGreeting = (): string => {
@@ -55,6 +89,48 @@ const Dashboard = () => {
     if (hour < 12) return "Morning";
     if (hour < 18) return "Afternoon";
     return "Evening";
+  };
+
+  const renderOrders = (orders: Order[], isReceived: boolean = false) => {
+    return orders.length > 0 ? (
+      <ul className="space-y-4">
+        {orders.map((order) => (
+          <li key={order.id} className="p-4 bg-gray-100 rounded-md">
+            <p>Order ID: {order.id}</p>
+            {isReceived && (
+              <>
+                <p>Customer Name: {order.customer_name}</p>
+                <p>Customer Email: {order.customer_email}</p>
+              </>
+            )}
+            <p>Product Name: {order.product_name}</p>
+            <p>Quantity: {order.quantity}</p>
+            <p>Shipping Address: {order.shipping_address}</p>
+            <p>Status: {order.order_status}</p>
+            {isReceived && (
+              <select
+                value={order.order_status}
+                onChange={async (e) => {
+                  const newStatus = e.target.value;
+                  await fetch(`/api/orders/update-status`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ orderId: order.id, status: newStatus }),
+                  });
+                }}
+                className="mt-2 p-2 border rounded"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+              </select>
+            )}
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p>{isReceived ? "No orders received." : "You have no orders."}</p>
+    );
   };
 
   const renderContent = () => {
@@ -77,18 +153,22 @@ const Dashboard = () => {
         return (
           <div>
             <h2 className="text-xl font-bold mb-4">Profile Information</h2>
-            <p>Name: {user?.name || "Unknown"}</p>
-            <p>Email: {user?.email || "Unknown"}</p>
+            <p>Name: {user.name || "Unknown"}</p>
+            <p>Email: {user.email || "Unknown"}</p>
           </div>
         );
       case "orders":
         return (
           <div>
-            <h2 className="text-xl font-bold mb-4">Order History</h2>
-            <ul>
-              <li key="order-1234">Order #1234 - $100.00</li>
-              <li key="order-5678">Order #5678 - $50.00</li>
-            </ul>
+            <h2 className="text-xl font-bold mb-4">Orders</h2>
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Orders Placed</h3>
+              {loading ? <p>Loading...</p> : renderOrders(ordersPlaced)}
+            </div>
+            <div className="mt-6">
+              <h3 className="font-semibold text-lg mb-2">Orders Received</h3>
+              {loading ? <p>Loading...</p> : renderOrders(ordersReceived, true)}
+            </div>
           </div>
         );
       case "wishlist":
@@ -123,85 +203,6 @@ const Dashboard = () => {
             )}
           </div>
         );
-      case "faqs":
-        return (
-          <div>
-            <h2 className="text-xl font-bold mb-4">Frequently Asked Questions</h2>
-            <ul className="space-y-4">
-              {[
-                {
-                  question: "How do I update my profile?",
-                  answer:
-                    "You can update your profile by navigating to the &quot;Profile&quot; tab and clicking the &quot;Edit&quot; button.",
-                },
-                {
-                  question: "How do I track my orders?",
-                  answer:
-                    "Go to the &quot;Orders&quot; tab in the dashboard to see your order history and track the status of your orders.",
-                },
-                {
-                  question: "How can I contact support?",
-                  answer: "Use the &quot;Contact Us&quot; tab or email us at support@example.com.",
-                },
-              ].map((faq, index) => (
-                <li key={index} className="p-4 bg-gray-100 rounded">
-                  <details>
-                    <summary className="font-semibold cursor-pointer">
-                      {faq.question}
-                    </summary>
-                    <p className="mt-2 text-gray-600">{faq.answer}</p>
-                  </details>
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      case "contact":
-        return (
-          <div>
-            <h2 className="text-xl font-bold mb-4">Contact Us</h2>
-            <form className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-gray-700 font-medium">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  placeholder="Your Name"
-                />
-              </div>
-              <div>
-                <label htmlFor="email" className="block text-gray-700 font-medium">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  placeholder="Your Email"
-                />
-              </div>
-              <div>
-                <label htmlFor="message" className="block text-gray-700 font-medium">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  placeholder="Your Message"
-                ></textarea>
-              </div>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Submit
-              </button>
-            </form>
-          </div>
-        );
       default:
         return <p>Welcome to your dashboard!</p>;
     }
@@ -219,9 +220,7 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="p-8">
-        <h2 className="text-xl font-bold">
-          {`Good ${getGreeting()}, ${user?.name || "Guest"}!`}
-        </h2>
+        <h2 className="text-xl font-bold">{`Good ${getGreeting()}, ${user?.name || "Guest"}!`}</h2>
       </div>
       <div className="flex">
         <aside className="w-1/4 bg-gray-100 p-4 min-h-screen">
