@@ -1,6 +1,4 @@
-
- 
-  import { sql } from "@vercel/postgres";
+import { sql } from "@vercel/postgres";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -13,8 +11,8 @@ export async function POST(request: Request) {
       WHERE user_id = ${userId} AND product_id = ${productId};
     `;
 
-    // If item exists, return a message
-    if (existingItem?.rowCount && existingItem.rowCount > 0) {
+    // Ensure existingItem is not null or undefined before accessing rowCount
+    if (existingItem && existingItem.rowCount && existingItem.rowCount > 0) {
       return NextResponse.json(
         { success: false, message: "Item already in cart" },
         { status: 200 } // Keep status 200 to avoid unnecessary error handling in the frontend
@@ -35,6 +33,8 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Error adding item to cart:", error);
+
+    // Ensure consistent response using NextResponse
     return NextResponse.json(
       { success: false, message: "An unexpected error occurred" },
       { status: 500 }

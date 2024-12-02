@@ -49,7 +49,8 @@ describe("POST /api/product/upload", () => {
       body: "image-data",
     });
 
-    // Simulate a failure in the upload process
+    // Simulate a 
+    //failure in the upload process
     (mockBlob.put as jest.Mock).mockRejectedValueOnce(new Error("Upload failed"));
 
     const response = await POST(mockRequest);
