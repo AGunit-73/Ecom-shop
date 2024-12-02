@@ -1,6 +1,6 @@
 import AuthService from "@/app/__mock__/auth";
 
-// Ensure the mock is set up before any tests run
+// Ensure the mock is set up before any tests run 1
 beforeAll(() => {
   jest.mock('@/app/__mock__/auth', () => ({
     default: AuthService, // Mock the AuthService
