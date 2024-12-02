@@ -48,7 +48,7 @@ export default function Home() {
       >
         {/* Section Title */}
         <h1 className="text-lg font-semibold text-gray-800 text-center mb-4">
-        Browse Our Clothes
+        Browse Our Clothes/ Christmas offer
         </h1>
 
         {/* Item List */}
