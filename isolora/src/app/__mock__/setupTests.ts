@@ -13,8 +13,11 @@ jest.mock('@vercel/postgres', () => ({
   }),
 }));
 
+
 // Mock the `@vercel/blob` module
 jest.mock('@vercel/blob', () => ({
   put: mockBlob.put,
   del: mockBlob.del,
+  sql: jest.fn() as jest.Mock,
 }));
+console.log('setupTests.ts is loaded');
