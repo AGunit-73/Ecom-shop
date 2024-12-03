@@ -15,7 +15,7 @@ const Footer = () => {
 
         <Link href="/about" className="flex flex-col items-center text-white hover:text-blue-400 transition">
           <InformationCircleIcon role="img" className="h-5 w-5 mb-1" />
-          <span className="text-xs font-medium">About Us</span>
+          <span className="text-xs font-medium">About</span>
         </Link>
 
         <Link href="/contact" className="flex flex-col items-center text-white hover:text-blue-400 transition">
