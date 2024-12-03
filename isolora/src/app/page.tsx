@@ -9,7 +9,7 @@ export default function Home() {
   const itemListRef = useRef<HTMLDivElement | null>(null);
 
   // Categories for the navbar
-  const categories = ["All", "Indian Wear", "Western Wear", "Footwear"];
+  const categories = ["All Fashion", "Indian Wear", "Western Wear", "Footwear"];
 
   // Handle category selection
   const handleCategorySelect = (category: string) => {
@@ -48,7 +48,7 @@ export default function Home() {
       >
         {/* Section Title */}
         <h1 className="text-lg font-semibold text-gray-800 text-center mb-4">
-          Browse Our Cloth
+          Browse Our News Fashion Items! Christmas 50% OFF DEALS!
         </h1>
 
         {/* Item List */}
