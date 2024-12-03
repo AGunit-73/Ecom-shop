@@ -22,6 +22,7 @@ interface CartContextType {
   addItemToCart: (productId: number, quantity?: number) => void;
   fetchCartItems: () => void;
   fetchCartCount: () => void;
+  clearCart: () => void; // Add clearCart to context
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -72,29 +73,26 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       alert("Please log in to add items to your cart.");
       return;
     }
-  
     try {
       const existingItem = cartItems.find((item) => item.productId === productId);
-  
+
       if (existingItem) {
-        // Prompt user if the item already exists in the cart
         const increaseQuantity = confirm(
           "This item is already in your cart. Do you want to increase the quantity?"
         );
-  
+
         if (increaseQuantity) {
           const updatedQuantity = existingItem.quantity + quantity;
-  
+
           const response = await fetch("/api/cart/update-quantity", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId, productId, quantity: updatedQuantity }),
           });
-  
+
           const updateData = await response.json();
-  
+
           if (response.ok) {
-            // Update local state
             setCartItems((prevItems) =>
               prevItems.map((item) =>
                 item.productId === productId
@@ -110,15 +108,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           }
         }
       } else {
-        // Add new item if it doesn't exist
         const response = await fetch("/api/cart/add-item", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId, productId, quantity }),
         });
-  
+
         const data = await response.json();
-  
+
         if (response.ok) {
           setCartItems((prevItems) => [
             ...prevItems,
@@ -136,7 +133,34 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       alert("An unexpected error occurred while adding the item to your cart.");
     }
   };
-  
+
+  // Clear cart
+  const clearCart = async () => {
+    if (!userId) {
+      alert("Please log in to clear your cart.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/cart/clear-cart?userId=${userId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setCartItems([]);
+        setCartCount(0);
+        console.log("Cart cleared successfully!");
+      } else {
+        console.error("Failed to clear cart:", data.message);
+        alert(data.message || "Failed to clear cart.");
+      }
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      alert("An unexpected error occurred while clearing the cart.");
+    }
+  };
 
   useEffect(() => {
     fetchCartItems();
@@ -151,6 +175,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         addItemToCart,
         fetchCartItems,
         fetchCartCount,
+        clearCart, // Provide clearCart
       }}
     >
       {children}
