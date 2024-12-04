@@ -267,7 +267,7 @@ export default function ItemList({ selectedCategory }: ItemListProps) {
     {/* Quantity Input */}
     <input
       type="number"
-      className="border border-gray-300 rounded px-2 py-1 w-12 text-center text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+      className="border border-gray-300 rounded px-2 py-1 w-12 text-center text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-blue"
       value={quantityUpdates[item.itemid] ?? item.quantity}
       onChange={(e) =>
         setQuantityUpdates((prev) => ({
