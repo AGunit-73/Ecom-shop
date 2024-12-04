@@ -23,7 +23,7 @@ const CartPage = () => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const salesTax = 0.1;
+  // const salesTax = 0.1;
 
   const fetchCartItems = useCallback(async () => {
     if (!user?.id) return;
@@ -99,12 +99,12 @@ const CartPage = () => {
     }
   };
 
-  const calculateSubtotal = () =>
+  const calculateTotal = () =>
     cartItems.reduce((sum, item) => sum + parseFloat(item.price as string) * item.quantity, 0);
 
-  const calculateTax = () => calculateSubtotal() * salesTax;
 
-  const calculateTotal = () => calculateSubtotal() + calculateTax();
+
+  
 
   const handleCheckout = () => {
     router.push("/checkout");
@@ -181,20 +181,20 @@ const CartPage = () => {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                          className="px-2 bg-gray-200 hover:bg-gray-300 rounded"
+                          className="px-2 bg-red-600 hover:bg-red-900 rounded text-red"
                         >
                           -
                         </button>
                         <span>{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                          className="px-2 bg-gray-200 hover:bg-gray-300 rounded"
+                          className="px-2 bg-green-600 hover:bg-green-900 rounded text-green"
                         >
                           +
                         </button>
                       </div>
                     </td>
-                    <td className="py-4 text-gray-700">
+                    <td className="py-4 text-blue-700">
                       ${(item.quantity * parseFloat(item.price as string)).toFixed(2)}
                     </td>
                     <td className="py-4">
@@ -212,15 +212,7 @@ const CartPage = () => {
           </div>
 
           <div className="mt-6 border-t border-gray-300 pt-6">
-            <div className="flex justify-between text-gray-700 mb-2">
-              <p>Subtotal:</p>
-              <p>${calculateSubtotal().toFixed(2)}</p>
-            </div>
-            <div className="flex justify-between text-gray-700 mb-2">
-              <p>Sales Tax:</p>
-              <p>${calculateTax().toFixed(2)}</p>
-            </div>
-            <div className="flex justify-between font-bold text-gray-900 mt-4">
+            <div className="flex justify-between font-bold text-blue-500 mt-4">
               <p>Grand Total:</p>
               <p>${calculateTotal().toFixed(2)}</p>
             </div>
