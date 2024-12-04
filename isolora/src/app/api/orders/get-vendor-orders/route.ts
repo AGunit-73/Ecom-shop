@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 
 export async function GET(request: Request) {
@@ -7,9 +6,12 @@ export async function GET(request: Request) {
 
   // Validate `vendorId`
   if (!vendorId || isNaN(Number(vendorId))) {
-    return NextResponse.json(
-      { success: false, message: "Valid Vendor ID is required" },
-      { status: 400 }
+    return new Response(
+      JSON.stringify({ success: false, message: "Valid Vendor ID is required" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 
@@ -20,16 +22,25 @@ export async function GET(request: Request) {
     `;
 
     if (!vendorCheck.rows.length) {
-      return NextResponse.json(
-        { success: false, message: "Vendor not found" },
-        { status: 404 }
+      return new Response(
+        JSON.stringify({ success: false, message: "Vendor not found" }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
       );
     }
 
     if (vendorCheck.rows[0].role !== "vendor") {
-      return NextResponse.json(
-        { success: false, message: "User is not authorized as a vendor" },
-        { status: 403 }
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "User is not authorized as a vendor",
+        }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -56,25 +67,51 @@ export async function GET(request: Request) {
 
     // Check if orders exist
     if (result.rows.length === 0) {
-      return NextResponse.json(
-        { success: true, message: "No orders found", orders: [] }
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "No orders found",
+          orders: [],
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
       );
     }
 
-    return NextResponse.json({ success: true, orders: result.rows });
+    return new Response(
+      JSON.stringify({ success: true, orders: result.rows }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     if (error instanceof Error) {
       console.error("Error fetching vendor orders:", error.message);
-      return NextResponse.json(
-        { success: false, message: "Failed to fetch vendor orders" },
-        { status: 500 }
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Failed to fetch vendor orders",
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
       );
     }
 
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { success: false, message: "An unexpected error occurred" },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: "An unexpected error occurred",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }
