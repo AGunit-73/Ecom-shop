@@ -159,7 +159,7 @@ const CheckoutPage = () => {
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
         <table className="w-full border border-gray-200 text-left">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-100 text-black">
             <tr>
               <th className="p-3">Image</th>
               <th className="p-3">Item</th>
@@ -195,10 +195,8 @@ const CheckoutPage = () => {
       {/* Totals */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">Totals</h2>
-        <div className="p-4 border rounded-md bg-gray-50">
-          <p>Subtotal: <span className="font-bold">${totals.subtotal.toFixed(2)}</span></p>
-          <p>Sales Tax (10%): <span className="font-bold">${totals.salesTax.toFixed(2)}</span></p>
-          <p>Total: <span className="font-bold">${totals.total.toFixed(2)}</span></p>
+        <div className="p-4 border rounded-md bg-gray-50 text-black">
+          <p>Total: <span className="font-bold">${totals.subtotal.toFixed(2)}</span></p>
         </div>
       </div>
 
@@ -208,31 +206,31 @@ const CheckoutPage = () => {
         <input
           type="text"
           placeholder="Address Line 1"
-          className="w-full mb-2 p-3 border rounded"
+          className="w-full mb-2 p-3 border rounded text-black"
           onChange={(e) => setShippingAddress({ ...shippingAddress, addressLine1: e.target.value })}
         />
         <input
           type="text"
           placeholder="City"
-          className="w-full mb-2 p-3 border rounded"
+          className="w-full mb-2 p-3 border rounded text-black"
           onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
         />
         <input
           type="text"
           placeholder="State"
-          className="w-full mb-2 p-3 border rounded"
+          className="w-full mb-2 p-3 border rounded text-black"
           onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
         />
         <input
           type="text"
           placeholder="Country"
-          className="w-full mb-2 p-3 border rounded"
+          className="w-full mb-2 p-3 border rounded text-black"
           onChange={(e) => setShippingAddress({ ...shippingAddress, country: e.target.value })}
         />
         <input
           type="text"
           placeholder="Zip Code"
-          className="w-full mb-2 p-3 border rounded"
+          className="w-full mb-2 p-3 border rounded text-black"
           onChange={(e) => setShippingAddress({ ...shippingAddress, zipCode: e.target.value })}
         />
       </div>

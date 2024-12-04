@@ -178,7 +178,7 @@ const Dashboard = () => {
             {loading ? (
               <p>Loading wishlist...</p>
             ) : wishlistItems.length > 0 ? (
-              <ul className="space-y-4">
+              <ul className="space-y-4 text-black">
                 {wishlistItems.map((item) => (
                   <li
                     key={item.product_id}
