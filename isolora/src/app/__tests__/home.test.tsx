@@ -23,6 +23,13 @@ jest.mock('@/app/components/itemsList', () => {
   return ItemList;
 });
 
+// Mock `HeroSwiper` to ignore it in the test
+jest.mock('@/app/components/heroSwiper', () => {
+  const HeroSwiper = () => <div data-testid="hero-swiper-component">Mocked HeroSwiper</div>;
+  HeroSwiper.displayName = 'HeroSwiper';
+  return HeroSwiper;
+});
+
 describe('Home Page', () => {
   beforeEach(() => {
     // Ensure `useRouter` mock returns the required properties to avoid errors

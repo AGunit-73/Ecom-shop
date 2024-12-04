@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/usercontext";
 import { FaSpinner, FaLock, FaEnvelope, FaUserPlus } from "react-icons/fa";
@@ -17,12 +17,29 @@ export default function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Function to hide the header manually
+  useEffect(() => {
+    const header = document.querySelector("header"); // Find the header element
+    if (header) {
+      header.style.display = "none"; // Hide the header
+    }
+
+    // Cleanup: Restore the header when leaving this page
+    return () => {
+      if (header) {
+        header.style.display = "block"; // Restore the header
+      }
+    };
+  }, []);
+
+  // Form Validation
   const validateForm = () => {
-    if (!email || !password) return "Email and password are required";
-    if (!isLogin && !signupName) return "Name is required for signup";
+    if (!email || !password) return "Email and password are required.";
+    if (!isLogin && !signupName) return "Name is required for signup.";
     return "";
   };
 
+  // Login Handler
   const handleLogin = async () => {
     const errorMessage = validateForm();
     if (errorMessage) {
@@ -42,7 +59,7 @@ export default function AuthForm() {
         setUser(data.user);
         router.push("/");
       } else {
-        setError(data.message || "Login failed");
+        setError(data.message || "Login failed.");
       }
     } catch {
       setError("An error occurred during login.");
@@ -51,6 +68,7 @@ export default function AuthForm() {
     }
   };
 
+  // Signup Handler
   const handleSignup = async () => {
     const errorMessage = validateForm();
     if (errorMessage) {
@@ -69,13 +87,12 @@ export default function AuthForm() {
           role: userRole,
         }),
       });
-
       const data = await res.json();
       if (data.success) {
         setIsLogin(true);
-        router.push("/pages/signup");
+        setError("Account created successfully! Please log in.");
       } else {
-        setError(data.message || "Signup failed");
+        setError(data.message || "Signup failed.");
       }
     } catch {
       setError("An error occurred during signup.");
@@ -89,7 +106,7 @@ export default function AuthForm() {
       className="min-h-screen bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: "url('/signup.jpg')" }}
     >
-      <div className="bg-white bg-opacity-90 p-8 rounded-2xl shadow-xl w-full max-w-lg mx-auto">
+      <div className="bg-white bg-opacity-95 p-8 rounded-2xl shadow-lg w-full max-w-lg">
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <Image
@@ -100,46 +117,54 @@ export default function AuthForm() {
             priority
           />
         </div>
+
         {/* Title */}
-        <h2 className="text-3xl font-extrabold text-center text-indigo-600 mb-6">
+        <h2 className="text-3xl font-bold text-center text-indigo-600 mb-6">
           {isLogin ? "Log In" : "Sign Up"}
         </h2>
+
         {/* Error Message */}
         {error && (
-          <p className="text-red-500 text-center mb-4" aria-live="polite">
+          <p className="text-red-500 text-center mb-4" role="alert">
             {error}
           </p>
         )}
+
         {/* Form */}
         <form
           onSubmit={(e) => e.preventDefault()}
           className="space-y-5"
           autoComplete="off"
         >
+          {/* Name Field for Signup */}
           {!isLogin && (
-            <>
-              <div className="relative">
-                <FaUserPlus className="absolute left-4 top-3 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Name"
-                  value={signupName}
-                  onChange={(e) => setSignupName(e.target.value)}
-                  className="pl-12 p-3 border border-gray-300 rounded-lg w-full focus:border-indigo-500 bg-gray-50"
-                />
-              </div>
-              <div className="relative">
-                <select
-                  value={userRole}
-                  onChange={(e) => setUserRole(e.target.value)}
-                  className="pl-3 p-3 border border-gray-300 rounded-lg w-full focus:border-indigo-500 bg-gray-50"
-                >
-                  <option value="customer">Customer</option>
-                  <option value="vendor">Vendor</option>
-                </select>
-              </div>
-            </>
+            <div className="relative">
+              <FaUserPlus className="absolute left-4 top-3 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Name"
+                value={signupName}
+                onChange={(e) => setSignupName(e.target.value)}
+                className="pl-12 p-3 border border-gray-300 rounded-lg w-full bg-white text-black focus:ring focus:ring-indigo-500"
+              />
+            </div>
           )}
+
+          {/* Role Selector for Signup */}
+          {!isLogin && (
+            <div className="relative">
+              <select
+                value={userRole}
+                onChange={(e) => setUserRole(e.target.value)}
+                className="p-3 border border-gray-300 rounded-lg w-full bg-white text-black focus:ring focus:ring-indigo-500"
+              >
+                <option value="customer">Customer</option>
+                <option value="vendor">Vendor</option>
+              </select>
+            </div>
+          )}
+
+          {/* Email Field */}
           <div className="relative">
             <FaEnvelope className="absolute left-4 top-3 text-gray-400" />
             <input
@@ -147,9 +172,11 @@ export default function AuthForm() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-12 p-3 border border-gray-300 rounded-lg w-full focus:border-indigo-500 bg-gray-50"
+              className="pl-12 p-3 border border-gray-300 rounded-lg w-full bg-white text-black focus:ring focus:ring-indigo-500"
             />
           </div>
+
+          {/* Password Field */}
           <div className="relative">
             <FaLock className="absolute left-4 top-3 text-gray-400" />
             <input
@@ -157,17 +184,19 @@ export default function AuthForm() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-12 p-3 border border-gray-300 rounded-lg w-full focus:border-indigo-500 bg-gray-50"
+              className="pl-12 p-3 border border-gray-300 rounded-lg w-full bg-white text-black focus:ring focus:ring-indigo-500"
             />
           </div>
+
+          {/* Submit Button */}
           <button
             type="button"
             onClick={isLogin ? handleLogin : handleSignup}
-            className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition"
+            className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
             disabled={loading}
           >
             {loading ? (
-              <FaSpinner className="animate-spin" />
+              <FaSpinner className="animate-spin mx-auto" />
             ) : isLogin ? (
               "Log In"
             ) : (
@@ -175,6 +204,8 @@ export default function AuthForm() {
             )}
           </button>
         </form>
+
+        {/* Toggle Between Login and Signup */}
         <p className="mt-6 text-center text-sm text-gray-600">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <span

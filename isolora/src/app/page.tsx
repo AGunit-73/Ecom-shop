@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Header from "./components/header";
 import ItemList from "./components/itemsList";
+import HeroSwiper from "./components/heroSwiper"; // Import the Swiper component
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -21,6 +22,9 @@ export default function Home() {
     <div className="bg-gray-100 min-h-screen flex flex-col">
       {/* Header */}
       <Header />
+
+      {/* Swiper Section */}
+      <HeroSwiper />
 
       {/* Category Navbar */}
       <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -48,7 +52,7 @@ export default function Home() {
       >
         {/* Section Title */}
         <h1 className="text-lg font-semibold text-gray-800 text-center mb-4">
-           Christmas 50% OFF DEALS!
+           Christmas 50% OFF DEALS! Shop Now 
         </h1>
 
         {/* Item List */}
@@ -57,4 +61,3 @@ export default function Home() {
     </div>
   );
 }
-

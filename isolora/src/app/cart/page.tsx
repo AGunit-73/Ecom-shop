@@ -15,7 +15,7 @@ interface CartItem {
   image_url: string | null;
   estimatedDelivery: string;
 }
-// Define the structure of the cart item
+
 const CartPage = () => {
   const { user } = useUser();
   const { fetchCartCount } = useCart();
@@ -33,7 +33,7 @@ const CartPage = () => {
       const response = await fetch(`/api/cart/get-items?userId=${user.id}`);
       const data = await response.json();
 
-      if (data.success) { 
+      if (data.success) {
         const updatedCartItems = data.cartItems.map((item: CartItem) => ({
           ...item,
           estimatedDelivery: new Date(
@@ -46,7 +46,7 @@ const CartPage = () => {
         console.error("Error fetching cart items:", data.message);
       }
     } catch (error) {
-      console.error("Error in fetchCartItems:", error);
+      console.error("Error fetching cart items:", error);
     } finally {
       setLoading(false);
     }
@@ -95,7 +95,7 @@ const CartPage = () => {
         console.error("Failed to remove item from cart");
       }
     } catch (error) {
-      console.error("Error in handleRemove function:", error);
+      console.error("Error removing item:", error);
     }
   };
 
@@ -110,19 +110,34 @@ const CartPage = () => {
     router.push("/checkout");
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="mt-20 text-center">Loading...</div>;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold">{user?.name ? `${user.name}'s Cart` : "Your Cart"}</h1>
+    <div className="p-6 max-w-5xl mx-auto mt-20">
+      <header className="mb-4">
+        <h1 className="text-2xl font-bold">
+          {user?.name ? `${user.name}'s Cart` : "Your Cart"}
+        </h1>
         <p className="text-gray-600">({cartItems.length} items)</p>
       </header>
 
       {cartItems.length === 0 ? (
         <div className="text-center py-10">
+          <Image
+            src="/cart-icon.png"
+            alt="Empty Cart"
+            width={100}
+            height={100}
+            className="mx-auto mb-4"
+          />
           <h2 className="text-xl font-semibold text-gray-700">Your cart is empty</h2>
           <p className="text-gray-500 mt-2">Add items to your cart to see them here.</p>
+          <button
+            onClick={() => router.push("/")}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Continue Shopping
+          </button>
         </div>
       ) : (
         <>
@@ -159,19 +174,21 @@ const CartPage = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 text-gray-700">${parseFloat(item.price as string).toFixed(2)}</td>
+                    <td className="py-4 text-gray-700">
+                      ${parseFloat(item.price as string).toFixed(2)}
+                    </td>
                     <td className="py-4">
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                          className="px-2 bg-gray-200"
+                          className="px-2 bg-gray-200 hover:bg-gray-300 rounded"
                         >
                           -
                         </button>
                         <span>{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                          className="px-2 bg-gray-200"
+                          className="px-2 bg-gray-200 hover:bg-gray-300 rounded"
                         >
                           +
                         </button>

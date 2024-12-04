@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { UserProvider } from "./context/usercontext";
 import { CartProvider } from "./context/cartcontext";
+import Header from "./components/header"; // Import Header component
 import Footer from "./footer/page"; // Import Footer component
 
 const geistSans = localFont({
@@ -32,11 +33,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        {/* Wrap children with UserProvider and CartProvider to provide contexts */}
         <UserProvider>
           <CartProvider>
+            {/* Add Header for consistent navigation */}
+            <Header />
             <main className="flex-grow">{children}</main>
-            <Footer /> {/* Include Footer at the bottom */}
+            <Footer />
           </CartProvider>
         </UserProvider>
       </body>
