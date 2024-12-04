@@ -54,8 +54,6 @@ export default class AuthService {
     role: "vendor" | "customer"
   ): Promise<{ success: boolean; message: string; user?: User }> {
     try {
-      console.log("Encryption Key:", encryptionKey);
-      console.log("IV:", iv);
 
       if (!name || !email || !password || !role) {
         console.error("Missing required fields:", { name, email, password, role });

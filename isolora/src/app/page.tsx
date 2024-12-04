@@ -50,10 +50,6 @@ export default function Home() {
         ref={itemListRef}
         className="w-full max-w-6xl mx-auto flex-grow px-4 py-4"
       >
-        {/* Section Title */}
-        <h1 className="text-lg font-semibold text-gray-800 text-center mb-4">
-           Christmas 50% OFF DEALS! Shop Now 
-        </h1>
 
         {/* Item List */}
         <ItemList selectedCategory={selectedCategory} />

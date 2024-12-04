@@ -4,7 +4,7 @@ import AuthService from '@/app/servises/auth';
 export async function POST(request: Request) {
   try {
     const { name, email, password, role } = await request.json();
-    console.log('Received vendor registration data:', { name, email, password, role });
+    
 
     // Check for undefined values
     if (!name || !email || !password || !role) {

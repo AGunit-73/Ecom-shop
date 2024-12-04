@@ -13,7 +13,6 @@ let activeUser: {
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
-    console.log('Received login data:', { email, password });
 
     const result = await AuthService.login(email, password);
 

@@ -17,14 +17,12 @@ export default function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Function to hide the header manually
   useEffect(() => {
     const header = document.querySelector("header"); // Find the header element
     if (header) {
       header.style.display = "none"; // Hide the header
     }
 
-    // Cleanup: Restore the header when leaving this page
     return () => {
       if (header) {
         header.style.display = "block"; // Restore the header
@@ -32,20 +30,7 @@ export default function AuthForm() {
     };
   }, []);
 
-  // Form Validation
-  const validateForm = () => {
-    if (!email || !password) return "Email and password are required.";
-    if (!isLogin && !signupName) return "Name is required for signup.";
-    return "";
-  };
-
-  // Login Handler
   const handleLogin = async () => {
-    const errorMessage = validateForm();
-    if (errorMessage) {
-      setError(errorMessage);
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch("/api/user/login", {
@@ -68,13 +53,7 @@ export default function AuthForm() {
     }
   };
 
-  // Signup Handler
   const handleSignup = async () => {
-    const errorMessage = validateForm();
-    if (errorMessage) {
-      setError(errorMessage);
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch("/api/user/add-user", {
@@ -101,13 +80,30 @@ export default function AuthForm() {
     }
   };
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // Perform HTML5 validation explicitly
+    const form = event.currentTarget;
+    if (!form.checkValidity()) {
+      form.reportValidity(); // Trigger browser validation
+      return;
+    }
+
+    // Call the appropriate handler
+    if (isLogin) {
+      handleLogin();
+    } else {
+      handleSignup();
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-cover bg-center flex items-center justify-center"
       style={{ backgroundImage: "url('/signup.jpg')" }}
     >
       <div className="bg-white bg-opacity-95 p-8 rounded-2xl shadow-lg w-full max-w-lg">
-        {/* Logo */}
         <div className="flex justify-center mb-6">
           <Image
             src="/logooo.jpg"
@@ -118,25 +114,21 @@ export default function AuthForm() {
           />
         </div>
 
-        {/* Title */}
         <h2 className="text-3xl font-bold text-center text-indigo-600 mb-6">
           {isLogin ? "Log In" : "Sign Up"}
         </h2>
 
-        {/* Error Message */}
         {error && (
           <p className="text-red-500 text-center mb-4" role="alert">
             {error}
           </p>
         )}
 
-        {/* Form */}
         <form
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={handleSubmit}
           className="space-y-5"
           autoComplete="off"
         >
-          {/* Name Field for Signup */}
           {!isLogin && (
             <div className="relative">
               <FaUserPlus className="absolute left-4 top-3 text-gray-400" />
@@ -146,11 +138,11 @@ export default function AuthForm() {
                 value={signupName}
                 onChange={(e) => setSignupName(e.target.value)}
                 className="pl-12 p-3 border border-gray-300 rounded-lg w-full bg-white text-black focus:ring focus:ring-indigo-500"
+                required
               />
             </div>
           )}
 
-          {/* Role Selector for Signup */}
           {!isLogin && (
             <div className="relative">
               <select
@@ -164,7 +156,6 @@ export default function AuthForm() {
             </div>
           )}
 
-          {/* Email Field */}
           <div className="relative">
             <FaEnvelope className="absolute left-4 top-3 text-gray-400" />
             <input
@@ -173,10 +164,12 @@ export default function AuthForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-12 p-3 border border-gray-300 rounded-lg w-full bg-white text-black focus:ring focus:ring-indigo-500"
+              required
+              pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+              title="Please enter a valid email address."
             />
           </div>
 
-          {/* Password Field */}
           <div className="relative">
             <FaLock className="absolute left-4 top-3 text-gray-400" />
             <input
@@ -185,13 +178,14 @@ export default function AuthForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="pl-12 p-3 border border-gray-300 rounded-lg w-full bg-white text-black focus:ring focus:ring-indigo-500"
+              required
+              pattern=".{8,}"
+              title="Password must be at least 8 characters long."
             />
           </div>
 
-          {/* Submit Button */}
           <button
-            type="button"
-            onClick={isLogin ? handleLogin : handleSignup}
+            type="submit"
             className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
             disabled={loading}
           >
@@ -205,7 +199,6 @@ export default function AuthForm() {
           </button>
         </form>
 
-        {/* Toggle Between Login and Signup */}
         <p className="mt-6 text-center text-sm text-gray-600">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <span
@@ -222,4 +215,3 @@ export default function AuthForm() {
     </div>
   );
 }
-

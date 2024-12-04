@@ -81,7 +81,7 @@ export default function ItemForm() {
     >
       <form
         onSubmit={handleSubmit}
-        className="bg-white bg-opacity-90 p-8 rounded-xl shadow-xl w-full max-w-lg space-y-6"
+        className="bg-white bg-opacity-90 p-8 rounded-xl shadow-xl w-full max-w-lg space-y-6 text-black"
       >
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">Add New Item</h2>
