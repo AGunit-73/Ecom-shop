@@ -93,7 +93,7 @@ const Dashboard = () => {
 
   const renderOrders = (orders: Order[], isReceived: boolean = false) => {
     return orders.length > 0 ? (
-      <ul className="space-y-4">
+      <ul className="space-y-4 text-black">
         {orders.map((order) => (
           <li key={order.id} className="p-4 bg-gray-100 rounded-md">
             <p>Order ID: {order.id}</p>
@@ -230,7 +230,7 @@ const Dashboard = () => {
               <li key={tab.key}>
                 <button
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center space-x-2 w-full text-left px-4 py-2 rounded transition-all duration-300 ${
+                  className={`flex items-center space-x-2 w-full text-left px-4 py-2 rounded transition-all duration-300 text-black ${
                     activeTab === tab.key
                       ? "bg-blue-600 text-white"
                       : "hover:bg-gray-200"
