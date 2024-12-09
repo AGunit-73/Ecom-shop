@@ -48,12 +48,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Filename is required" }, { status: 400 });
   }
 
-  if (!request.body) {
+  const body = await request.arrayBuffer(); // Read the binary data
+  if (!body || body.byteLength === 0) {
     return NextResponse.json({ error: "File data is missing" }, { status: 400 });
   }
 
   try {
-    const blob: BlobResult = await put(filename, request.body, {
+    const blob: BlobResult = await put(filename, Buffer.from(body), {
       access: "public",
     });
 
