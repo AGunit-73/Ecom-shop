@@ -2,16 +2,16 @@
 export const mockSql = {
   insert: jest.fn(),
   select: jest.fn(),
-  delete: jest.fn(), // This is crucial for testing the DELETE functionality
+  update: jest.fn(),
+  delete: jest.fn(),
   createTable: jest.fn(),
 };
 
-// Mock the actual SQL implementation
+// Ensure `delete` is properly mocked and resolves a valid result
 jest.mock("@vercel/postgres", () => ({
-  sql: jest.fn((template: TemplateStringsArray, ...values: any[]// eslint-disable-line @typescript-eslint/no-explicit-any
-) => {
+  sql: jest.fn((template: TemplateStringsArray, ...values: any[]) => {
     const query = template.join("?");
-    if (query.includes("DELETE FROM items")) {
+    if (query.includes("DELETE FROM cart WHERE user_id =")) {
       return mockSql.delete(query, values);
     }
     if (query.includes("INSERT")) {
@@ -20,9 +20,11 @@ jest.mock("@vercel/postgres", () => ({
     if (query.includes("SELECT")) {
       return mockSql.select(query, values);
     }
+    if (query.includes("UPDATE")) {
+      return mockSql.update(query, values);
+    }
     if (query.includes("CREATE TABLE")) {
       return mockSql.createTable(query, values);
     }
   }),
-}));
-
+}))
