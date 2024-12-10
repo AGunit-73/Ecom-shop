@@ -7,43 +7,35 @@ jest.mock("@vercel/postgres");
 jest.mock("next/server", () => ({
     ...jest.requireActual("next/server"),
     NextResponse: {
-        json: jest.fn((data: any, init?: { status?: number }) => ({
+        json: jest.fn((data: { success: boolean; item?: object; message?: string }, init?: { status?: number }) => ({
             status: init?.status || 200,
             json: async () => data,
         })),
     },
 }));
 
-describe("POST /api/product/add-items", () => {
+describe("POST /api/cart/add-items", () => {
     beforeEach(() => {
         jest.clearAllMocks(); // Clear mocks before each test
     });
 
-    it("should add an item successfully", async () => {
+    it("should add an item to the cart successfully", async () => {
         const mockRequest = new Request("http://example.com", {
             method: "POST",
             body: JSON.stringify({
-                name: "Test Item",
-                category: "Test Category",
-                description: "This is a test item.",
-                price: 100,
-                quantity: 10,
-                imageUrl: "http://example.com/test-image.jpg",
+                item_id: 1,
+                quantity: 2,
                 user_id: 1,
             }),
         });
 
-        // Mock SQL insert response
+        // Mock SQL insert response for cart item addition
         mockSql.insert.mockResolvedValueOnce({
             rows: [
                 {
                     id: 1,
-                    name: "Test Item",
-                    category: "Test Category",
-                    description: "This is a test item.",
-                    price: 100,
-                    quantity: 10,
-                    image_url: "http://example.com/test-image.jpg",
+                    item_id: 1,
+                    quantity: 2,
                     user_id: 1,
                 },
             ],
@@ -54,16 +46,8 @@ describe("POST /api/product/add-items", () => {
         // Validate SQL query execution
         expect(mockSql.insert).toHaveBeenCalledTimes(1);
         expect(mockSql.insert).toHaveBeenCalledWith(
-            expect.stringContaining("INSERT INTO items"),
-            expect.arrayContaining([
-                "Test Item",
-                "Test Category",
-                "This is a test item.",
-                100,
-                10,
-                "http://example.com/test-image.jpg",
-                1,
-            ])
+            expect.stringContaining("INSERT INTO cart"),
+            expect.arrayContaining([1, 2, 1]) // item_id, quantity, user_id
         );
 
         // Validate response
@@ -72,12 +56,8 @@ describe("POST /api/product/add-items", () => {
             success: true,
             item: {
                 id: 1,
-                name: "Test Item",
-                category: "Test Category",
-                description: "This is a test item.",
-                price: 100,
-                quantity: 10,
-                image_url: "http://example.com/test-image.jpg",
+                item_id: 1,
+                quantity: 2,
                 user_id: 1,
             },
         });
@@ -87,9 +67,8 @@ describe("POST /api/product/add-items", () => {
         const mockRequest = new Request("http://example.com", {
             method: "POST",
             body: JSON.stringify({
-                // Missing required fields like name, category, etc.
-                price: 100,
-                quantity: 10,
+                // Missing required fields like item_id, quantity, etc.
+                user_id: 1,
             }),
         });
 
@@ -107,12 +86,8 @@ describe("POST /api/product/add-items", () => {
         const mockRequest = new Request("http://example.com", {
             method: "POST",
             body: JSON.stringify({
-                name: "Test Item",
-                category: "Test Category",
-                description: "This is a test item.",
-                price: 100,
-                quantity: 10,
-                imageUrl: "http://example.com/test-image.jpg",
+                item_id: 1,
+                quantity: 2,
                 user_id: 1,
             }),
         });
