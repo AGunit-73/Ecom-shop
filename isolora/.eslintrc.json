@@ -3,6 +3,8 @@
   "extends": ["next/core-web-vitals", "next/typescript", "plugin:testing-library/react"],
   "rules": {
     "testing-library/no-container": "off",
-    "testing-library/no-node-access": "off"
+    "testing-library/no-node-access": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   }
 }
+
