@@ -7,7 +7,7 @@ jest.mock("@vercel/postgres");
 jest.mock("next/server", () => ({
     ...jest.requireActual("next/server"),
     NextResponse: {
-        json: jest.fn((data: { [key: string]: any }, init?: { status?: number }) => ({
+        json: jest.fn((data: any, init?: { status?: number }) => ({
             status: init?.status || 200,
             json: async () => data,
         })),
@@ -133,4 +133,4 @@ describe("PATCH /api/product/update-quantity", () => {
             message: "Update failed"
         });
     });
-});
+})
