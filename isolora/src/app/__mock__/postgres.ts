@@ -1,5 +1,9 @@
 // src/app/__mock__/postgres.ts
-export const mockSql = {
+
+// Define types for the mock SQL methods
+type SqlMethod = (query: string, values: (string | number | boolean | null)[]) => Promise<any>;
+
+export const mockSql: Record<string, jest.MockedFunction<SqlMethod>> = {
   insert: jest.fn(),
   select: jest.fn(),
   update: jest.fn(),
@@ -7,10 +11,11 @@ export const mockSql = {
   createTable: jest.fn(),
 };
 
-// Ensure `delete` is properly mocked and resolves a valid result
+// Mock the `@vercel/postgres` module
 jest.mock("@vercel/postgres", () => ({
-  sql: jest.fn((template: TemplateStringsArray, ...values: any[]) => {
+  sql: jest.fn((template: TemplateStringsArray, ...values: (string | number | boolean | null)[]) => {
     const query = template.join("?");
+    
     if (query.includes("DELETE FROM cart WHERE user_id =")) {
       return mockSql.delete(query, values);
     }
@@ -26,5 +31,8 @@ jest.mock("@vercel/postgres", () => ({
     if (query.includes("CREATE TABLE")) {
       return mockSql.createTable(query, values);
     }
+    
+    // Default case for unsupported queries
+    throw new Error(`Unhandled query: ${query}`);
   }),
-}))
+}));
