@@ -13,7 +13,7 @@ const ContactPage = () => {
       {/* Interactive Heading */}
       <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center relative group">
       <span className="text-blue-600 group-hover:text-blue-400 transition-colors duration-300">
-              Contact Us
+              Contact us
             </span>
         <div className="w-0 h-1 bg-blue-500 mt-2 mx-auto group-hover:w-full transition-all duration-500"></div>
       </h1>
