@@ -10,6 +10,8 @@ export default function Home() {
   const itemListRef = useRef<HTMLDivElement | null>(null);
 
   // Categories for the navbar
+  // Categories for the navbar
+  // Categories for the navbar
   const categories = ["All", "Indian Wear", "Western Wear", "Footwear"];
 
   // Handle category selection
