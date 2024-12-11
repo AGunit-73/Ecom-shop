@@ -60,7 +60,7 @@ const HeroSwiper = () => {
                 Shop Now, Pay Later
               </h1>
               <p className="text-lg">
-                Flexible payment options available for all.
+                Flexible payment options available for everyone.
               </p>
             </div>
           </div>
