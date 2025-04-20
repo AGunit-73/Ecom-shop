@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/context/usercontext";
 
@@ -28,26 +28,6 @@ export default function ItemForm() {
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const { user } = useUser();
-
-  const [categories, setCategories] = useState<string[]>([]);
-  const [showNewCategory, setShowNewCategory] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
-
-  // ✅ Fetch categories from your backend API
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("/api/categories");
-        const data = await response.json();
-        const names = data.categories.map((cat: { name: string }) => cat.name);
-        setCategories(names);
-      } catch (error) {
-        console.error("Failed to load categories", error);
-        setCategories([]);
-      }
-    };
-    fetchCategories();
-  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -79,6 +59,7 @@ export default function ItemForm() {
     });
 
     const blob: BlobResult = await response.json();
+
     setBlobUrl(blob.url);
 
     const newItem: Item = {
@@ -105,7 +86,7 @@ export default function ItemForm() {
     <div
       className="min-h-screen bg-cover bg-center flex items-center justify-center"
       style={{
-        background: "linear-gradient(to right, #d4e4ff, #b8d3ff, #eaf4ff)",
+        background: "linear-gradient(to right, #d4e4ff, #b8d3ff, #eaf4ff)", // Light soothing gradient
       }}
     >
       <form
@@ -135,59 +116,10 @@ export default function ItemForm() {
           <option value="" disabled>
             Select Category
           </option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
+          <option value="Indian Wear">Indian Wear</option>
+          <option value="Western Wear">Western Wear</option>
+          <option value="Footwear">Footwear</option>
         </select>
-
-        {/* Add Category Inline */}
-        <div className="text-sm text-blue-600">
-          {!showNewCategory ? (
-            <button
-              type="button"
-              onClick={() => setShowNewCategory(true)}
-              className="underline hover:text-blue-800 mt-1"
-            >
-              + Add New Category
-            </button>
-          ) : (
-            <div className="mt-2">
-              <input
-                type="text"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                placeholder="Enter new category"
-                className="w-full px-4 py-2 border border-blue-300 rounded-md mb-2"
-              />
-              <button
-                type="button"
-                disabled={!newCategory.trim()}
-                onClick={async () => {
-                  const res = await fetch("/api/categories", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: newCategory }),
-                  });
-                  const data = await res.json();
-                  if (data.success) {
-                    setCategories((prev) => [...prev, data.category.name]);
-                    setCategory(data.category.name);
-                    setNewCategory("");
-                    setShowNewCategory(false);
-                    alert("Category added!");
-                  } else {
-                    alert(data.message || "Failed to add category.");
-                  }
-                }}
-                className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
-              >
-                Save Category
-              </button>
-            </div>
-          )}
-        </div>
 
         <textarea
           placeholder="Description"
