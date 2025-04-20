@@ -1,31 +1,38 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import Header from "./components/header";
 import ItemList from "./components/itemsList";
-import HeroSwiper from "./components/heroSwiper"; // Import the Swiper component
+import HeroSwiper from "./components/heroSwiper";
 
 export default function Home() {
+  const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const itemListRef = useRef<HTMLDivElement | null>(null);
 
-  // Categories for the navbar
-  // Categories for the navbar
-  // Categories for the navbar
-  const categories = ["All", "Indian Wear", "Western Wear", "Footwear"];
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+        const names = data.categories.map((cat: { name: string }) => cat.name);
+        setCategories(["All", ...names]);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+        setCategories(["All"]); // fallback if API fails
+      }
+    };
+    fetchCategories();
+  }, []);
 
-  // Handle category selection
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
-    itemListRef.current?.scrollIntoView({ behavior: "smooth" }); // Smooth scroll to items
+    itemListRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col">
-      {/* Header */}
       <Header />
-
-      {/* Swiper Section */}
       <HeroSwiper />
 
       {/* Category Navbar */}
@@ -52,8 +59,6 @@ export default function Home() {
         ref={itemListRef}
         className="w-full max-w-6xl mx-auto flex-grow px-4 py-4"
       >
-
-        {/* Item List */}
         <ItemList selectedCategory={selectedCategory} />
       </main>
     </div>
